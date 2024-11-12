@@ -8,6 +8,7 @@ import Akun from './src/screens/Akun';
 import SignIn from './src/screens/SignIn';
 import SignUp from './src/screens/SignUp';
 import Detail from './src/screens/Detail';
+import PaymentScreen from './src/screens/Payment';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -59,6 +60,9 @@ function App() {
         <Stack.Screen options={{
           headerShown:false
         }} name="Detail" component={Detail} />
+        <Stack.Screen options={{
+          headerShown:false
+        }} name="PaymentScreen" component={PaymentScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

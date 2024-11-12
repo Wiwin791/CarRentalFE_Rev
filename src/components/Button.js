@@ -25,10 +25,13 @@ export default function Button({
 const styles = StyleSheet.create({
     button: {
         padding: 10,
-        alignItems:'center'
+        alignItems:'center',
+        borderRadius: 5
     },
     buttonTitle: {
         textAlign: 'center',
-        color: "#fff"
+        color: "#fff",
+        fontWeight: 'bold',
+        fontSize: 16
     }
 })
