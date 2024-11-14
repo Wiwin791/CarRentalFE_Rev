@@ -31,11 +31,6 @@ const styles = StyleSheet.create({
     buttonTitle: {
         textAlign: 'center',
         color: "#fff",
-<<<<<<< HEAD
         fontWeight: 'bold'
-=======
-        fontWeight: 'bold',
-        fontSize: 16
->>>>>>> d18b6d755eae2cc70838571d4a737c681a27ef41
     }
 })

@@ -1,9 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-<<<<<<< HEAD
 import { postLogin, getProfile } from './api';
-=======
->>>>>>> d18b6d755eae2cc70838571d4a737c681a27ef41
-
 const initialState = {
     data: null, // variable untuk menyimpan data user
     token: null,
@@ -15,17 +11,12 @@ const initialState = {
 export const userSlice = createSlice({
     name: 'user',
     initialState,
-<<<<<<< HEAD
-    reducers: { // kumpulan method untuk mengubah initial state secara synchronous
-=======
-    reducers: {
->>>>>>> d18b6d755eae2cc70838571d4a737c681a27ef41
+    reducers: { // kumpulan method untuk mengubah initial state secara synchronous8b6d755eae2cc70838571d4a737c681a27ef41
         logout: (state, action) => {
             state.data = null;
             state.isLogin = false;
             state.token = null;
         },
-<<<<<<< HEAD
         resetState: (state) => initialState,
     },
     extraReducers: (builder) => {
@@ -67,12 +58,3 @@ export const selectUser = (state) => state.user; // selector untuk mengambil sta
 export const { logout, resetState } = userSlice.actions; // action untuk logout
 export { postLogin, getProfile }; // action untuk panggil api postLogin dan get Profile
 export default userSlice.reducer; // user reducer untuk di tambahkan ke store
-=======
-    }, // kumpulan method untuk mengubah initial state secara synchronous
-    extraReducers: { // kumpulan method untuk mengubah initial state secara asynchronous
-
-    },
-});
-
-export default userSlice.reducer;
->>>>>>> d18b6d755eae2cc70838571d4a737c681a27ef41

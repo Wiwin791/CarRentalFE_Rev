@@ -3,22 +3,34 @@ import { View, Text, Image, TouchableOpacity, StyleSheet, Dimensions } from 'rea
 import Icon from 'react-native-vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';
 import { formatCurrency } from '../../utils/formatCurrency';
+import { format, addDays } from 'date-fns';
+import { id } from 'date-fns/locale';
 
 export default function Payment3({ route }) {
     const navigation = useNavigation();
+    const currentDate = new Date();
+    const newDate = addDays(currentDate, 1);
     const { carDetails } = route.params;
-    const [timeLeft, setTimeLeft] = React.useState({ minutes: 25, seconds: 59, milliseconds: 9 })
+    const formattedDate = format(newDate, "eeee, dd MMM yyyy 'jam' HH:mm", { locale: id });
+    const [timeLeft, setTimeLeft] = React.useState({ hours: 23, minutes: 59, seconds: 59, milliseconds: 9 })
 
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft(prev => {
+        if (prev.hours === 0 && prev.minutes === 0 && prev.seconds === 0 && prev.milliseconds === 0) {
+            clearInterval(timer);  // Stop the timer once time reaches zero
+            return prev;  // Keep returning the same state (stop update)
+          }
+
         if (prev.milliseconds > 0) {
-          return { ...prev, milliseconds: prev.milliseconds - 1 }
-        } else if (prev.seconds > 0) {
-          return { ...prev, seconds: prev.seconds - 1, milliseconds: 9 }
-        } else if (prev.minutes > 0) {
-          return { minutes: prev.minutes - 1, seconds: 59, milliseconds: 9 }
-        }
+            return { ...prev, milliseconds: prev.milliseconds - 1 };
+          } else if (prev.seconds > 0) {
+            return { ...prev, seconds: prev.seconds - 1, milliseconds: 9 }; // reset milliseconds when seconds change
+          } else if (prev.minutes > 0) {
+            return { minutes: prev.minutes - 1, seconds: 59, milliseconds: 9 }; // reset seconds and milliseconds when minutes change
+          } else if (prev.hours > 0) {
+            return { hours: prev.hours - 1, minutes: 59, seconds: 59, milliseconds: 9 }; // reset minutes, seconds, and milliseconds when hours change
+          } 
         clearInterval(timer)
         return prev
       })
@@ -69,11 +81,12 @@ export default function Payment3({ route }) {
         <Text style={styles.timerText}>
           Selesaikan Pembayaran Sebelum{' '}
           <Text style={styles.timerDigits}>
-            {String(timeLeft.minutes).padStart(2, '0')}:{String(timeLeft.minutes).padStart(2, '0')}:
-            {timeLeft.seconds}
+            {String(timeLeft.hours).padStart(2, '0')}:
+            {String(timeLeft.minutes).padStart(2, '0')}:
+            {String(timeLeft.seconds).padStart(2, '0')}
           </Text>
         </Text>
-        <Text style={styles.dateText}>Rabu, 19 Jun 2022 jam 13.00 WIB</Text>
+        <Text style={styles.dateText}>{formattedDate} WIB</Text>
       </View>
 
       {/* Vehicle Details */}

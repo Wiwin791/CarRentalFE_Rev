@@ -3,7 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import React, { useEffect } from 'react'
 import Button from '../components/Button';
 import { useSelector, useDispatch } from 'react-redux';
-import { getProfile, selectUser, logout } from '../redux/reducers/user';
+import { getProfile, selectUser, logout, resetState } from '../redux/reducers/user';
 
 export default function Akun() {
     const navigation = useNavigation();
@@ -16,6 +16,10 @@ export default function Akun() {
         }
     }, [user]);
 
+    const handleLogout =()=> {
+        dispatch(resetState());
+        dispatch(logout());
+    }
     return (
         <View style={styles.container}>
             {
@@ -37,7 +41,7 @@ export default function Akun() {
                         />
                         <Text style={styles.greeting}>Halo, {user.data?.fullname}</Text>
                         <Button
-                            onPress={() => dispatch(logout())}
+                            onPress={handleLogout}
                             title={'Logout'}
                             color={'#A43333'}
                             buttonStyle={styles.logoutButton} 

@@ -1,7 +1,7 @@
-import { KeyboardAvoidingView, Platform, View, Text, Image, TextInput, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import { KeyboardAvoidingView, Platform, View, Text, Image, TextInput, StyleSheet, ScrollView, ActivityIndicator ,Alert} from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
 import Button from '../components/Button';
-import { Link, useNavigation } from '@react-navigation/native';
+import { Link, useNavigation, useFocusEffect } from '@react-navigation/native';
 import ModalPopup from '../components/Modal';
 import Icon from 'react-native-vector-icons/Feather';
 //redux
@@ -21,8 +21,6 @@ export default function SignIn() {
   const [errorMessage, setErrorMessage] = useState(null);
   const [formData, setFormData] = useState(initialFormState);
 
-  console.log(user)
-
   const handleChange = (val, name) => {
     setFormData({
       ...formData,
@@ -34,26 +32,26 @@ export default function SignIn() {
     await dispatch(postLogin(formData));
   };
 
-  useEffect(() => {
-    dispatch(resetState());
-  }, []);
-
-  useEffect(() => {
-    if (user.status === 'success') {
-      setModalVisible(true);
-      setErrorMessage(null);
-      setTimeout(() => {
-        setModalVisible(false);
-        navigation.navigate('HomeTabs', { screen: 'Profile' });
-      }, 1000);
-    } else if (user.status === 'failed') {
-      setModalVisible(true);
-      setErrorMessage(user.message);
-      setTimeout(() => {
-        setModalVisible(false);
-      }, 2000)
-    }
-  }, [navigation, user]);
+  useFocusEffect(
+    useCallback(() => {
+      if (user.status === 'success') {
+        setModalVisible(true);
+        setErrorMessage(null);
+        setTimeout(() => {
+          setModalVisible(false);
+          navigation.navigate('HomeTabs', { screen: 'Akun' });
+        }, 1000);
+      } else if (user.status === 'failed') {
+        setModalVisible(true);
+        setErrorMessage(user.message)
+        setTimeout(() => {
+          setModalVisible(false);
+        }, 2000)
+      } 
+      console.log(user.status)
+      console.log(modalVisible)
+    }, [user])
+  );
 
   return (
     <ScrollView>
@@ -95,18 +93,18 @@ export default function SignIn() {
             <View style={styles.modalBackground}>
               {errorMessage !== null ?
                 <>
-                  <Icon size={32} name={'x-circle'} />
+                  <Icon size={32} name={'x-circle'} color="#D9534F" style={styles.iconError} />
                   {Array.isArray(errorMessage) ?
                     errorMessage.map((e) => {
                       return <Text>{e.message}</Text>
                     })
                     :
-                    <Text>{errorMessage}</Text>
+                    <Text style={styles.errorMessage}>{errorMessage}</Text>
                   }
                 </>
                 :
                 <>
-                  <Icon size={32} name={'check-circle'} />
+                  <Icon size={32} name={'check-circle'} color="#5CB85F" style={styles.iconSuccess}/>
                   <Text>Berhasil Login!</Text>
                 </>
               }
@@ -149,7 +147,26 @@ const styles = StyleSheet.create({
     width: '90%',
     backgroundColor: '#fff',
     elevation: 20,
-    borderRadius: 4,
-    padding: 20
-  }
+    borderRadius: 10, // Menambahkan radius untuk sudut yang lebih halus
+    padding: 30,
+    justifyContent: 'center', // Menjaga ikon dan teks tetap di tengah
+    alignItems: 'center',
+    shadowColor: '#000', // Menambahkan bayangan agar modal lebih menonjol
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  iconError: {
+    marginBottom: 15,
+  },
+  iconSuccess: {
+    marginBottom: 15,
+  },
+  errorMessage: {
+    fontSize: 16,
+    color: '#D9534F', // Warna merah untuk pesan error
+    fontWeight: '500',
+    textAlign: 'center',
+    marginTop: 10,
+  },
 })

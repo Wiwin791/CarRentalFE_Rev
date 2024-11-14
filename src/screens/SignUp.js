@@ -95,18 +95,18 @@ export default function SignUp() {
                         <View style={styles.modalBackground}>
                             {errorMessage !== null ?
                                 <>
-                                    <Icon size={32} name={'x-circle'} />
+                                    <Icon size={32} name={'x-circle'} color="#D9534F" style={styles.iconError} />
                                     {Array.isArray(errorMessage) ? 
                                         errorMessage.map((e) => {
-                                            return <Text>{e.message}</Text>
+                                            return <Text>{e.message} </Text>
                                         })
                                     :
-                                        <Text>{errorMessage}</Text>
+                                        <Text style={styles.errorMessage}>{errorMessage}</Text>
                                     }
                                 </>
                                 :
                                 <>
-                                    <Icon size={32} name={'check-circle'} />
+                                    <Icon size={32} name={'check-circle'} color="#5CB85F" style={styles.iconSuccess} />
                                     <Text>Berhasil Register!</Text>
                                 </>
                             }
@@ -149,7 +149,26 @@ const styles = StyleSheet.create({
         width: '90%',
         backgroundColor: '#fff',
         elevation: 20,
-        borderRadius: 4,
-        padding: 20
-    }
+        borderRadius: 10, // Menambahkan radius untuk sudut yang lebih halus
+        padding: 30,
+        justifyContent: 'center', // Menjaga ikon dan teks tetap di tengah
+        alignItems: 'center',
+        shadowColor: '#000', // Menambahkan bayangan agar modal lebih menonjol
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      iconError: {
+        marginBottom: 15,
+      },
+      iconSuccess: {
+        marginBottom: 15,
+      },
+      errorMessage: {
+        fontSize: 16,
+        color: '#D9534F', // Warna merah untuk pesan error
+        fontWeight: '500',
+        textAlign: 'center',
+        marginTop: 10,
+      },
 })
