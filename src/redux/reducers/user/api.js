@@ -4,8 +4,9 @@ import axios from 'axios';
 export const postLogin = createAsyncThunk(
     'user/postLogin',
     async (payload, { rejectWithValue }) => {
+        console.log(payload)
         try {
-            const res = await axios.post('http://192.168.100.2:3000/api/v1/auth/signin',
+            const res = await axios.post('http://192.168.25.207:3000/api/v1/auth/signin',
                 JSON.stringify(payload), {
                 headers: {
                     'Content-Type': 'application/json',
@@ -13,8 +14,10 @@ export const postLogin = createAsyncThunk(
             }
             );
             const data = res.data;
+            console.log(data)
             return data;
         } catch (e) {
+            console.log(e)
             if(e.response.data){
                 return rejectWithValue(e.response.data.message);
             }else{

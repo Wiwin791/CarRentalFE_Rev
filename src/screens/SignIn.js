@@ -21,6 +21,8 @@ export default function SignIn() {
   const [errorMessage, setErrorMessage] = useState(null);
   const [formData, setFormData] = useState(initialFormState);
 
+  console.log(user)
+
   const handleChange = (val, name) => {
     setFormData({
       ...formData,

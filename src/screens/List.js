@@ -15,6 +15,7 @@ import {
 import axios from 'axios';
 import CarList from '../components/CarList';
 import FocusAwareStatusBar from '../components/FocusAwareStatusBar';
+import { useNavigation } from '@react-navigation/native';
 
 const COLORS = {
     primary: '#A43333',
@@ -26,11 +27,12 @@ const COLORS = {
 function List() {
     const [cars, setCars] = useState([])
     const isDarkMode = useColorScheme() === 'dark';
+    const navigation = useNavigation();
 
     useEffect(() => {
         const fetchCars = async () => {
             try {
-                const res = await axios('http://192.168.100.2:3000/api/v1/cars')
+                const res = await axios('http://192.168.25.207:3000/api/v1/cars')
                 console.log(res.data)
                 setCars(res.data)
             } catch (e) {
@@ -62,6 +64,7 @@ function List() {
                         passengers={5}
                         baggage={4}
                         price={item.price}
+                        onPress={() => navigation.navigate('Detail', {id: item.id})}
                     />
                 }
                 keyExtractor={item => item.id}

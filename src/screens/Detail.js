@@ -40,7 +40,7 @@ export default function Detail({ route }) {
     useEffect(() => {
         const getDetail = async () => {
             try {
-                const res = await axios(`http://192.168.100.2:3000/api/v1/cars/${id}`)
+                const res = await axios(`http://192.168.25.207:3000/api/v1/cars/${id}`)
                 setData(res.data.data);
                 setIsLoading(false);
                 console.log(res.data.data);
@@ -76,7 +76,7 @@ export default function Detail({ route }) {
                     </Row>
                     <Image
                         style={styles.image}
-                        source={{ uri: data.image }}
+                        source={{ uri: data.img }}
                         height={200}
                         width={200}
                     />
@@ -88,6 +88,9 @@ export default function Detail({ route }) {
                 <Button
                     color="#3D7B3F"
                     title="Lanjutkan Pembayaran"
+                    onPress={() => {
+                        navigation.navigate('Payment1', { carDetails: data });
+                    }}
                 />
             </View>
         </View>
@@ -114,6 +117,7 @@ const styles = StyleSheet.create({
     },
     image: {
         marginBottom: 20,
+        width: '100%'
     },
     details: {
         body: {
