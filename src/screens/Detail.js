@@ -40,7 +40,11 @@ export default function Detail({ route }) {
     useEffect(() => {
         const getDetail = async () => {
             try {
+<<<<<<< HEAD
                 const res = await axios(`http://192.168.25.207:3000/api/v1/cars/${id}`)
+=======
+                const res = await axios(`http://192.168.1.24:3000/api/v1/cars/${id}`)
+>>>>>>> d18b6d755eae2cc70838571d4a737c681a27ef41
                 setData(res.data.data);
                 setIsLoading(false);
                 console.log(res.data.data);
@@ -81,7 +85,7 @@ export default function Detail({ route }) {
                         width={200}
                     />
                 </View>
-                <Markdown style={styles.details}>{data.description.replace(/\\n/g,"\n")}</Markdown>
+                <Markdown style={styles.details}>{data.description.replace(/\\n/g, "\n")}</Markdown>
             </ScrollView>
             <View style={styles.footer}>
                 <Text style={styles.price}>{formatCurrency.format(data.price || 0)}</Text>
@@ -89,9 +93,14 @@ export default function Detail({ route }) {
                     color="#3D7B3F"
                     title="Lanjutkan Pembayaran"
                     onPress={() => {
+<<<<<<< HEAD
                         navigation.navigate('Payment1', { carDetails: data });
+=======
+                        navigation.navigate('PaymentScreen', { carDetails: data });
+>>>>>>> d18b6d755eae2cc70838571d4a737c681a27ef41
                     }}
                 />
+
             </View>
         </View>
     );
