@@ -13,12 +13,8 @@ import Akun from './src/screens/Akun';
 import SignIn from './src/screens/SignIn';
 import SignUp from './src/screens/SignUp';
 import Detail from './src/screens/Detail';
-<<<<<<< HEAD
 import Payment1 from './src/screens/Payment/Payment1';
 import Payment3 from './src/screens/Payment/Payment3';
-=======
-import PaymentScreen from './src/screens/Payment';
->>>>>>> d18b6d755eae2cc70838571d4a737c681a27ef41
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -56,7 +52,6 @@ function Tabs(){
 
 function App() {
   return (
-<<<<<<< HEAD
     <Provider store={store}>
       <PersistGate loading={<ActivityIndicator/>} persistor={persistor}>
         <NavigationContainer>
@@ -83,27 +78,6 @@ function App() {
         </NavigationContainer>
       </PersistGate>
     </Provider>
-=======
-    <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen options={{
-          headerShown:false
-        }} name="HomeTabs" component={Tabs} />
-        <Stack.Screen options={{
-          headerShown:false
-        }} name="SignIn" component={SignIn} />
-        <Stack.Screen options={{
-          headerShown:false
-        }} name="SignUp" component={SignUp} />
-        <Stack.Screen options={{
-          headerShown:false
-        }} name="Detail" component={Detail} />
-        <Stack.Screen options={{
-          headerShown:false
-        }} name="PaymentScreen" component={PaymentScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
->>>>>>> d18b6d755eae2cc70838571d4a737c681a27ef41
   );
 }
 

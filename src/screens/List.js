@@ -28,16 +28,11 @@ function List() {
     const navigation = useNavigation();
     const [cars, setCars] = useState([])
     const isDarkMode = useColorScheme() === 'dark';
-    const navigation = useNavigation();
 
     useEffect(() => {
         const fetchCars = async () => {
             try {
-<<<<<<< HEAD
                 const res = await axios('http://192.168.25.207:3000/api/v1/cars')
-=======
-                const res = await axios('http://192.168.1.24:3000/api/v1/cars')
->>>>>>> d18b6d755eae2cc70838571d4a737c681a27ef41
                 console.log(res.data)
                 setCars(res.data)
             } catch (e) {
