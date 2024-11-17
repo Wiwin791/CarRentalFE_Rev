@@ -43,6 +43,7 @@ export default function SignIn() {
         }, 1000);
       } else if (user.status === 'failed') {
         setModalVisible(true);
+        dispatch(resetState())
         setErrorMessage(user.message)
         setTimeout(() => {
           setModalVisible(false);

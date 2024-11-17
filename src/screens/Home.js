@@ -5,7 +5,7 @@
  * @format
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
 import {
   FlatList,
   Image,
@@ -16,14 +16,14 @@ import {
   View,
 } from 'react-native';
 
-import axios from 'axios';
-
 import Button from '../components/Button';
 import Icon from 'react-native-vector-icons/Feather';
 import CarList from '../components/CarList';
 import FocusAwareStatusBar from '../components/FocusAwareStatusBar';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useSelector, useDispatch } from 'react-redux';
+import { selectUser } from '../redux/reducers/user';
+import { getCars, selectCars } from '../redux/reducers/cars';
 
 const COLORS = {
   primary: '#A43333',
@@ -43,43 +43,19 @@ const ButtonIcon = ({ icon, title }) => (
 
 function Home() {
   const navigation = useNavigation();
-  const [cars, setCars] = useState([])
-  const [user, setUser] = useState(null)
+  const dispatch = useDispatch();
+  const user = useSelector(selectUser);
+  const car = useSelector(selectCars);
   const isDarkMode = useColorScheme() === 'dark';
 
-  const getUser = async () => {
-    try {
-      const res = await AsyncStorage.getItem('user')
-      setUser(JSON.parse(res));
-      console.log(res);
-    } catch (e) {
-      console.log(e);
-      setUser(null);
-    }
-  }
-
-  const fetchCars = async () => {
-    try {
-      const res = await axios('http://192.168.25.207:3000/api/v1/cars')
-      console.log(res.data)
-      setCars(res.data)
-    } catch (e) {
-      console.log(e)
-    }
-  }
-
-  useEffect(() => {
-    fetchCars()
-  }, [])
 
   useFocusEffect(
     useCallback(() => {
-      getUser()
-      return () => {
-        setUser(null)
-      };
-    }, [])
-  )
+        if (user.token) {
+            dispatch(getCars(user.token))
+            console.log(car.data)
+        }
+    }, [user, dispatch]))
 
   const backgroundStyle = {
     // overflow: 'visible',
@@ -94,7 +70,6 @@ function Home() {
       />
       {/* end banner */}
       <FlatList
-        data={cars.data}
         ListHeaderComponent={
           <>
             <View style={styles.header}>
@@ -132,17 +107,37 @@ function Home() {
             </View>
           </>
         }
-        renderItem={({ item, index }) =>
-          <CarList
-            key={item.id}
-            image={{ uri: item.img }}
-            carName={item.name}
-            passengers={5}
-            baggage={4}
-            price={item.price}
-            onPress={() => navigation.navigate('Detail', {id: item.id})}
-          />
-        }
+       // Display car list only if the user is logged in
+       data={user.token && car.data ? car.data : []} // Only show cars if the user is logged in
+       ListEmptyComponent={
+        !user.token ? (
+          <View style={styles.emptyStateContainer}>
+            <Icon name="log-in" style={styles.iconStyle} size={52} color="#ccc" />
+            <Text style={styles.emptyStateText}>
+              Silahkan Login untuk Melihat Daftar Mobil
+              
+            </Text>
+            <View style={styles.loginButtonContainer}>
+              <Button title="Login" onPress={() => navigation.navigate('SignIn')} />
+            </View>
+          </View>
+        ) : (
+          <Text style={styles.noCarsText}>
+            Tidak ada mobil yang tersedia
+          </Text>
+        )
+      }
+      renderItem={({ item }) => (
+        <CarList
+          key={item.id}
+          image={{ uri: item.img }}
+          carName={item.name}
+          passengers={5}
+          baggage={4}
+          price={item.price}
+          onPress={() => navigation.navigate('Detail', { id: item.id })}
+        />
+      )}
         keyExtractor={item => item.id}
       />
     </SafeAreaView>
@@ -209,7 +204,48 @@ const styles = StyleSheet.create({
     minWidth: 65,
     marginTop: 5,
     textAlign: 'center'
-  }
+  },
+  emptyStateContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.lighter,
+    paddingHorizontal: 20,
+    paddingVertical: 40,
+  },
+  emptyStateText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  loginButtonContainer: {
+    backgroundColor: COLORS.secondary,
+    borderRadius: 5,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+  },
+  loginButtonText: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  iconStyle: {
+    marginBottom: 50,
+    marginTop: 50
+  },
+
+  // Styling untuk pesan "Tidak Ada Mobil"
+  noCarsText: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: COLORS.primary,
+    textAlign: 'center',
+    marginTop: 20,
+    paddingHorizontal: 30,
+  },
 });
 
 export default Home;

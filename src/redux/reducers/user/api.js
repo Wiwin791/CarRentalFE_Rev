@@ -6,7 +6,7 @@ export const postLogin = createAsyncThunk(
     async (payload, { rejectWithValue }) => {
         console.log(payload)
         try {
-            const res = await axios.post('http://192.168.25.207:3000/api/v1/auth/signin',
+            const res = await axios.post('http://192.168.238.102:3000/api/v1/auth/signin',
                 JSON.stringify(payload), {
                 headers: {
                     'Content-Type': 'application/json',

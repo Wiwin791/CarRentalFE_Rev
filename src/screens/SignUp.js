@@ -33,7 +33,7 @@ export default function SignUp() {
 
     const handleSubmit = async () => {
         try {
-            const res = await axios.post("http://192.168.25.207:3000/api/v1/auth/signup",
+            const res = await axios.post("http://192.168.1.24:3000/api/v1/auth/signup",
                 JSON.stringify(formData), {
                 headers: {
                     "Content-Type": 'application/json'

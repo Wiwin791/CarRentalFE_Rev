@@ -1,53 +1,28 @@
-import React, {useEffect} from 'react'
+import React, { useEffect } from 'react'
 import { View, Text, Image, TouchableOpacity, StyleSheet, Dimensions } from 'react-native'
 import Icon from 'react-native-vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { format, addDays } from 'date-fns';
 import { id } from 'date-fns/locale';
+import CountDown from 'react-native-countdown-component-maintained';
 
 export default function Payment3({ route }) {
-    const navigation = useNavigation();
-    const currentDate = new Date();
-    const newDate = addDays(currentDate, 1);
-    const { carDetails } = route.params;
-    const formattedDate = format(newDate, "eeee, dd MMM yyyy 'jam' HH:mm", { locale: id });
-    const [timeLeft, setTimeLeft] = React.useState({ hours: 23, minutes: 59, seconds: 59, milliseconds: 9 })
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev.hours === 0 && prev.minutes === 0 && prev.seconds === 0 && prev.milliseconds === 0) {
-            clearInterval(timer);  // Stop the timer once time reaches zero
-            return prev;  // Keep returning the same state (stop update)
-          }
-
-        if (prev.milliseconds > 0) {
-            return { ...prev, milliseconds: prev.milliseconds - 1 };
-          } else if (prev.seconds > 0) {
-            return { ...prev, seconds: prev.seconds - 1, milliseconds: 9 }; // reset milliseconds when seconds change
-          } else if (prev.minutes > 0) {
-            return { minutes: prev.minutes - 1, seconds: 59, milliseconds: 9 }; // reset seconds and milliseconds when minutes change
-          } else if (prev.hours > 0) {
-            return { hours: prev.hours - 1, minutes: 59, seconds: 59, milliseconds: 9 }; // reset minutes, seconds, and milliseconds when hours change
-          } 
-        clearInterval(timer)
-        return prev
-      })
-    }, 100)
-
-    return () => clearInterval(timer)
-  }, [])
+  const navigation = useNavigation();
+  const currentDate = new Date();
+  const newDate = addDays(currentDate, 1);
+  const { carDetails, selectedPaymentMethod } = route.params;
+  const formattedDate = format(newDate, "eeee, dd MMM yyyy 'jam' HH:mm", { locale: id });
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Icon size={32} name={'arrow-left'} color={'black'} />
+          <Icon size={32} name={'arrow-left'} color={'black'} />
         </TouchableOpacity>
         <View>
-          <Text style={styles.headerTitle}>BCA Transfer</Text>
+          <Text style={styles.headerTitle}>{selectedPaymentMethod}</Text>
           <Text style={styles.orderNumber}>Order ID: xxxxxxxx</Text>
         </View>
       </View>
@@ -80,11 +55,18 @@ export default function Payment3({ route }) {
       <View style={styles.timerContainer}>
         <Text style={styles.timerText}>
           Selesaikan Pembayaran Sebelum{' '}
-          <Text style={styles.timerDigits}>
-            {String(timeLeft.hours).padStart(2, '0')}:
-            {String(timeLeft.minutes).padStart(2, '0')}:
-            {String(timeLeft.seconds).padStart(2, '0')}
-          </Text>
+          <CountDown style={styles.timerDigits}
+            size={10.5}
+            until={86400}
+            onFinish={() => alert('Finished')}
+            digitStyle={{ backgroundColor: '#FA2C5A' }}
+            digitTxtStyle={{ color: 'white', fontSize: 18 }}
+            timeLabelStyle={{ color: 'red', fontWeight: 'bold' }}
+            separatorStyle={{ color: 'black' }}
+            timeToShow={['H', 'M', 'S']}
+            timeLabels={{ m: null, s: null }}
+            showSeparator
+          />
         </Text>
         <Text style={styles.dateText}>{formattedDate} WIB</Text>
       </View>
@@ -99,12 +81,12 @@ export default function Payment3({ route }) {
           <Text style={styles.vehicleName}>{carDetails.name}</Text>
           <View style={styles.vehicleIcons}>
             <View style={styles.iconContainer}>
-                <Icon size={14} name={'users'} color={'#8A8A8A'} />
-                <Text style={styles.iconText}>{carDetails.seat}</Text>
+              <Icon size={14} name={'users'} color={'#8A8A8A'} />
+              <Text style={styles.iconText}>{carDetails.seat}</Text>
             </View>
             <View style={styles.iconContainer}>
-                <Icon size={14} name={'briefcase'} color={'#8A8A8A'} />
-                <Text style={styles.iconText}>{carDetails.baggage}</Text>
+              <Icon size={14} name={'briefcase'} color={'#8A8A8A'} />
+              <Text style={styles.iconText}>{carDetails.baggage}</Text>
             </View>
           </View>
         </View>
@@ -116,20 +98,24 @@ export default function Payment3({ route }) {
         <Text style={styles.transferTitle}>Lakukan Transfer ke</Text>
         <View style={styles.bankContainer}>
           <View style={styles.bankButton}>
-            <Text style={styles.bankText}>BCA</Text>
+            <Text style={styles.bankText}>{selectedPaymentMethod}</Text>
+
           </View>
-          <View style={[styles.bankButton, styles.bankButtonActive]}>
-            <Text style={styles.bankTextActive}>BCA Transfer</Text>
+          <View>
+            <Text >{selectedPaymentMethod} Transfer</Text>
+          </View>
+          <View>
           </View>
         </View>
-        <Text style={styles.bankSubtext}>a.n Jeep Bromo Online</Text>
-
+        <View>
+          <Text style={styles.bankSubtext}>a.n Jeep Bromo Online</Text>
+        </View>
         <View style={styles.inputContainer}>
           <Text style={styles.inputLabel}>Nomor Rekening</Text>
           <View style={styles.inputWrapper}>
             <Text style={styles.input}>xxxx-xxxx-xxxx</Text>
             <TouchableOpacity>
-                <Icon size={20} name={'copy'} color={'#8A8A8A'} />
+              <Icon size={20} name={'copy'} color={'#8A8A8A'} />
             </TouchableOpacity>
           </View>
         </View>
@@ -139,7 +125,7 @@ export default function Payment3({ route }) {
           <View style={styles.inputWrapper}>
             <Text style={styles.input}>{formatCurrency.format(carDetails.price || 0)}</Text>
             <TouchableOpacity>
-                <Icon size={20} name={'copy'} color={'#8A8A8A'} />
+              <Icon size={20} name={'copy'} color={'#8A8A8A'} />
             </TouchableOpacity>
           </View>
         </View>
@@ -150,8 +136,13 @@ export default function Payment3({ route }) {
         <Text style={styles.bottomText}>
           Klik konfirmasi pembayaran untuk mempercepat proses pengeceken
         </Text>
-        <TouchableOpacity style={styles.confirmButton}>
-          <Text style={styles.confirmButtonText}>Konfirmasi Pembayaran</Text>
+        <TouchableOpacity
+          style={styles.payButton}
+          onPress={() => {
+            navigation.navigate('Payment5');
+          }}
+        >
+          <Text style={styles.payButtonText}>Lanjutkan Pembayaran</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.orderListButton}>
           <Text style={styles.orderListButtonText}>Lihat Daftar Pesanan</Text>
@@ -177,10 +168,12 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   headerTitle: {
+    marginLeft: 10,
     fontSize: 16,
     fontWeight: '600',
   },
   orderNumber: {
+    marginLeft: 10,
     fontSize: 14,
     color: '#666',
   },
@@ -228,16 +221,18 @@ const styles = StyleSheet.create({
     borderBottomColor: '#eee',
   },
   timerText: {
-    fontSize: 14,
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   timerDigits: {
-    color: '#E53935',
-    fontWeight: '600',
+    alignItems: 'center',
+    marginBottom: 20
   },
   dateText: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#666',
-    marginTop: 4,
+    marginTop: -5,
+    fontWeight: 'bold'
   },
   vehicleContainer: {
     flexDirection: 'row',
@@ -272,6 +267,7 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   price: {
+    marginTop: 13,
     fontSize: 16,
     fontWeight: '600',
     color: '#4CAF50',
@@ -307,7 +303,8 @@ const styles = StyleSheet.create({
   bankSubtext: {
     fontSize: 14,
     color: '#666',
-    marginBottom: 16,
+    marginLeft: 84,
+    marginTop: -25
   },
   inputContainer: {
     marginBottom: 16,
@@ -316,6 +313,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     marginBottom: 4,
+    marginTop: 8
   },
   inputWrapper: {
     flexDirection: 'row',
@@ -362,4 +360,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  payButton: {
+    backgroundColor: '#3D7B3F',
+    borderRadius: 8,
+    padding: 16,
+    alignItems: 'center',
+    marginBottom: 15
+},
+payButtonText: {
+  color: '#fff',
+  fontSize: 16,
+  fontWeight: '600',
+},
 })

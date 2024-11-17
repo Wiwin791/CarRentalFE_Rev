@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { formatCurrency } from '../../utils/formatCurrency';
 import Icon from 'react-native-vector-icons/Feather';
+import { ProgressSteps, ProgressStep } from '@ouedraogof/react-native-progress-steps';
 
 export default function Payment1({ route }) {
     const navigation = useNavigation();
@@ -11,7 +12,7 @@ export default function Payment1({ route }) {
 
     useEffect(() => {
         if (!carDetails) {
-            navigation.goBack();  // If no car details are passed, go back
+            navigation.goBack(); 
         }
     }, [carDetails]);
     const isPayButtonDisabled = !selectedPaymentMethod;
@@ -27,27 +28,33 @@ export default function Payment1({ route }) {
             </View>
 
             {/* Progress Steps */}
-            <View style={styles.progressContainer}>
-                <View style={styles.progressStep}>
-                    <View style={[styles.stepCircle, styles.activeStep]}>
-                        <Text style={styles.stepNumber}>1</Text>
-                    </View>
-                    <Text style={styles.stepText}>Pilih Metode</Text>
-                </View>
-                <View style={styles.progressLine} />
-                <View style={styles.progressStep}>
-                    <View style={styles.stepCircle}>
-                        <Text style={styles.stepNumber}>2</Text>
-                    </View>
-                    <Text style={styles.stepText}>Bayar</Text>
-                </View>
-                <View style={styles.progressLine} />
-                <View style={styles.progressStep}>
-                    <View style={styles.stepCircle}>
-                        <Text style={styles.stepNumber}>3</Text>
-                    </View>
-                    <Text style={styles.stepText}>Tiket</Text>
-                </View>
+            <View style={styles.progressStyle}>
+                <ProgressSteps>
+                    <ProgressStep
+                        label="Pilih Metode"
+                        nextBtnStyle={{ display: 'none' }}  // Hide next button
+                        previousBtnStyle={{ display: 'none' }}
+                    >
+                        <View style={{ alignItems: 'center' }}>
+                        </View>
+                    </ProgressStep>
+                    <ProgressStep
+                        label="Bayar"
+                        nextBtnStyle={{ display: 'none' }}  // Hide next button
+                        previousBtnStyle={{ display: 'none' }}
+                    >
+                        <View style={{ alignItems: 'center' }}>
+                        </View>
+                    </ProgressStep>
+                    <ProgressStep
+                        label="Tiket"
+                        nextBtnStyle={{ display: 'none' }}  // Hide next button
+                        previousBtnStyle={{ display: 'none' }}
+                    >
+                        <View style={{ alignItems: 'center' }}>
+                        </View>
+                    </ProgressStep>
+                </ProgressSteps>
             </View>
 
             <ScrollView style={styles.content}>
@@ -124,7 +131,9 @@ export default function Payment1({ route }) {
                             placeholder="Tulis catatanmu di sini"
                             placeholderTextColor="#999"
                         />
-                        <TouchableOpacity style={styles.promoButton}>
+                        <TouchableOpacity style={[styles.promoButton, isPayButtonDisabled && styles.payButtonDisabled]}
+                            disabled={isPayButtonDisabled}
+                        >
                             <Text style={styles.promoButtonText}>Terapkan</Text>
                         </TouchableOpacity>
                     </View>
@@ -136,11 +145,11 @@ export default function Payment1({ route }) {
                 <View style={styles.totalContainer}>
                     <Text style={styles.totalText}>{formatCurrency.format(carDetails.price || 0)}</Text>
                 </View>
-                <TouchableOpacity 
-                    style={[styles.payButton, isPayButtonDisabled && styles.payButtonDisabled]} 
+                <TouchableOpacity
+                    style={[styles.payButton, isPayButtonDisabled && styles.payButtonDisabled]}
                     onPress={() => {
-                        navigation.navigate('Payment3', { carDetails });
-                    }} 
+                        navigation.navigate('Payment3', { carDetails, selectedPaymentMethod });
+                    }}
                     disabled={isPayButtonDisabled}
                 >
                     <Text style={styles.payButtonText}>Bayar</Text>
@@ -167,29 +176,10 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         marginLeft: 16,
     },
-    progressContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 16,
-    },
-    progressStep: {
-        alignItems: 'center',
-    },
-    progressLine: {
-        flex: 1,
-        height: 1,
-        backgroundColor: '#ddd',
-        marginHorizontal: 8,
-    },
-    stepCircle: {
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        backgroundColor: '#eee',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 4,
+    progressStyle: {
+        height: '10%',
+        marginTop: -15,
+        marginBottom: 10
     },
     activeStep: {
         backgroundColor: '#4CAF50',
@@ -238,6 +228,7 @@ const styles = StyleSheet.create({
         color: '#666',
     },
     price: {
+        marginTop: 13,
         fontSize: 16,
         fontWeight: '600',
         color: '#4CAF50',
@@ -266,11 +257,11 @@ const styles = StyleSheet.create({
     selectedOption: {
         backgroundColor: '#E8F5E9',
         borderColor: '#4CAF50',
-        
+
     },
     checkIcon: {
         marginLeft: 300,
-        fontSize: 30, 
+        fontSize: 30,
     },
     bankText: {
         fontSize: 16,
@@ -335,7 +326,7 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     payButtonDisabled: {
-        backgroundColor: '#A5D6A7', // A lighter color for the disabled button
+        backgroundColor: '#A5D6A7',
     },
     backButton: {
         alignItems: 'flex-start',

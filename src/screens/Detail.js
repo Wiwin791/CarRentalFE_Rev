@@ -5,6 +5,7 @@ import {
     Image,
     StyleSheet,
     ActivityIndicator,
+    TouchableOpacity
 } from 'react-native';
 
 import { useState, useEffect } from 'react';
@@ -39,7 +40,7 @@ export default function Detail({ route }) {
     useEffect(() => {
         const getDetail = async () => {
             try {
-                const res = await axios(`http://192.168.25.207:3000/api/v1/cars/${id}`)
+                const res = await axios(`http://192.168.238.102:3000/api/v1/cars/${id}`)
                 setData(res.data.data);
                 setIsLoading(false);
                 console.log(res.data.data);
@@ -57,10 +58,10 @@ export default function Detail({ route }) {
 
     return (
         <View style={styles.container}>
-            <Button style={styles.backButton} onPress={() => navigation.goBack()}>
-                <Icon size={32} name={'arrow-left'} color={'#00000'} />
-            </Button>
             <ScrollView contentContainerStyle={styles.contentContainer}>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+                    <Icon size={32} name={'arrow-left'} color={'black'} />
+            </TouchableOpacity>
                 <View style={styles.heading}>
                     <Text style={styles.title}>{data.name}</Text>
                     <Row style={styles.iconWrapper} gap={5}>
@@ -84,13 +85,14 @@ export default function Detail({ route }) {
             </ScrollView>
             <View style={styles.footer}>
                 <Text style={styles.price}>{formatCurrency.format(data.price || 0)}</Text>
-                <Button
-                    color="#3D7B3F"
-                    title="Lanjutkan Pembayaran"
+                <TouchableOpacity 
+                    style={styles.payButton} 
                     onPress={() => {
-                        navigation.navigate('Payment1', { carDetails: data });
-                    }}
-                />
+                        navigation.navigate('Payment1', { carDetails: data});
+                    }} 
+                >
+                    <Text style={styles.payButtonText}>Lanjutkan Pembayaran</Text>
+                </TouchableOpacity>
 
             </View>
         </View>
@@ -107,6 +109,7 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     heading: {
+        marginTop: -30,
         alignItems: 'center',
     },
     title: {
@@ -130,9 +133,10 @@ const styles = StyleSheet.create({
         heading2: { marginBottom: 10, fontSize: 18, fontFamily: 'PoppinsBold' },
     },
     price: {
-        fontFamily: 'PoppinsBold',
+        fontFamily: 'Poppins',
         fontSize: 20,
         marginBottom: 10,
+        fontWeight: 'bold'
     },
     footer: {
         backgroundColor: '#eeeeee',
@@ -153,5 +157,16 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 2,
+    },
+    payButton: {
+        backgroundColor: '#3D7B3F',
+        borderRadius: 8,
+        padding: 16,
+        alignItems: 'center',
+    },
+    payButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: '600',
     },
 });

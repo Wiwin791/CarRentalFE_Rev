@@ -1,24 +1,24 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { selectUser } from '../redux/reducers/user';
-import { useState, useEffect } from 'react';
+import { useCallback } from 'react';
 import {
     FlatList,
     SafeAreaView,
     Text,
     useColorScheme,
     View,
-  } from 'react-native';
+} from 'react-native';
 import FocusAwareStatusBar from '../components/FocusAwareStatusBar';
-import axios from 'axios';
 import CarList from '../components/CarList';
 import Button from '../components/Button';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { getCars, selectCars } from '../redux/reducers/cars';
 
 function List() {
     const dispatch = useDispatch();
-    const [cars, setCars] = useState([]);
     const isDarkMode = useColorScheme() === 'dark';
-    const user = useSelector(selectUser)
+    const user = useSelector(selectUser);
+    const car = useSelector(selectCars);
     const navigation = useNavigation();
 
     const COLORS = {
@@ -26,22 +26,15 @@ function List() {
         secondary: '#5CB85F',
         darker: '#121212',
         lighter: '#ffffff'
-      }
+    }
 
-    useEffect(() => {
-        if (user.isLogin) {
-            const fetchCars = async () => {
-                try {
-                    const res = await axios('http://192.168.25.207:3000/api/v1/cars');
-                    console.log(res.data);
-                    setCars(res.data);
-                } catch (e) {
-                    console.log(e);
-                }
-            };
-            fetchCars();
-        }
-    }, [user]);
+    useFocusEffect(
+        useCallback(() => {
+            if (user.token) {
+                dispatch(getCars(user.token))
+                console.log(car.data)
+            }
+        }, [user, dispatch]))
 
     const handleLogin = () => {
         dispatch(login());  // Disptach action login
@@ -60,7 +53,7 @@ function List() {
                 </View>
             ) : (
                 <FlatList
-                    data={cars.data}
+                    data={car.data}
                     renderItem={({ item, index }) => (
                         <CarList
                             key={item.id}
