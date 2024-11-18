@@ -1,10 +1,12 @@
 import { KeyboardAvoidingView, View, Text, Image, TextInput, StyleSheet, ScrollView } from 'react-native'
-import React, { useEffect, useReducer, useState } from 'react'
+import React, { useEffect, useReducer, useState, } from 'react'
+import { useDispatch } from 'react-redux'
 import Button from '../components/Button'
 import { Link, useNavigation } from '@react-navigation/native'
 import ModalPopup from '../components/Modal'
 import Icon from 'react-native-vector-icons/Feather';
 import axios from 'axios'
+import { resetState } from '../redux/reducers/user'
 
 const initialFormState = {
     fullname: '',
@@ -13,6 +15,7 @@ const initialFormState = {
 }
 
 export default function SignUp() {
+    const dispatch = useDispatch()
     const navigation = useNavigation();
     const [formData, setFormData] = useReducer((state, event) => {
         return {
@@ -33,7 +36,7 @@ export default function SignUp() {
 
     const handleSubmit = async () => {
         try {
-            const res = await axios.post("http://192.168.1.24:3000/api/v1/auth/signup",
+            const res = await axios.post("http://192.168.238.102:3000/api/v1/auth/signup",
                 JSON.stringify(formData), {
                 headers: {
                     "Content-Type": 'application/json'
@@ -59,6 +62,10 @@ export default function SignUp() {
             }, 2000)
         }
     }, [modalVisible])
+
+    useEffect(() => {
+dispatch(resetState())
+    },[])
 
     return (
         <ScrollView>

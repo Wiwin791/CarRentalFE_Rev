@@ -11,9 +11,12 @@ import {
 import { launchImageLibrary } from 'react-native-image-picker';
 import CountDown from 'react-native-countdown-component-maintained';
 import Icon from 'react-native-vector-icons/Feather';
+import { useDispatch, useSelector } from 'react-redux';
+import { setTimeLeft } from '../../redux/reducers/timer/timer10';
 
 export default function Payment5() {
-  const [timeLeft, setTimeLeft] = useState(600); // 10 minutes in seconds
+  const dispatch = useDispatch();
+  const timeLeft = useSelector((state) => state.timer.timeLeft);  // 10 minutes in seconds
   const [selectedImage, setSelectedImage] = useState(null);
 
   const pickImage = () => {
@@ -30,6 +33,16 @@ export default function Payment5() {
       }
     );
   };
+
+  const handleTimeChange = (time) => {
+    dispatch(setTimeLeft(time)); // Update waktu yang tersisa ke Redux
+  };
+
+  // Cek waktu saat komponen dimuat
+  useEffect(() => {
+    console.log('Current Time Left:', timeLeft);
+  }, [timeLeft]);
+  
   
 
   return (
@@ -45,7 +58,7 @@ export default function Payment5() {
         <Text style={styles.timer}>
         <CountDown style={styles.timerDigits}
             size={10.5}
-            until={600}
+            until={timeLeft}
             onFinish={() => alert('Finished')}
             digitStyle={{ backgroundColor: '#FA2C5A' }}
             digitTxtStyle={{ color: 'white', fontSize: 18 }}
@@ -54,12 +67,13 @@ export default function Payment5() {
             timeToShow={['M', 'S']}
             timeLabels={{ m: null, s: null }}
             showSeparator
+            onChange={handleTimeChange}
           />
         </Text>
 
         <Text style={styles.uploadTitle}>Upload Bukti Pembayaran</Text>
         <Text style={styles.uploadSubtitle}>
-          Untuk membantu kami lebih cepat melakukan pengecekan. Kamu bisa upload 
+          Untuk membantu kami lebih cepat melakukan pengecekan, Kamu bisa upload 
           bukti bayarmu
         </Text>
 
@@ -67,10 +81,10 @@ export default function Payment5() {
           {selectedImage ? (
             <Image source={{ uri: selectedImage }} style={styles.image} />
           ) : (
-            <Icon name="image" style={styles.placeholderImage} size={48} color="#ccc" />
+            <Icon name="image" style={styles.placeholderImage} size={48} color="black" />    
           )}
+          <Text style={styles.pdfViewerText}>PDF Viewer</Text>
         </TouchableOpacity>
-
         <TouchableOpacity style={styles.uploadButton} onPress={pickImage}>
           <Text style={styles.uploadButtonText}>Upload</Text>
         </TouchableOpacity>
@@ -154,6 +168,11 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     tintColor: '#ccc',
+  },
+  pdfViewerText: {
+    marginLeft: 8, // Memberikan jarak antara ikon dan teks
+    fontSize: 16,
+    color: '#000', // Menyesuaikan warna teks
   },
   uploadButton: {
     backgroundColor: '#4CAF50',

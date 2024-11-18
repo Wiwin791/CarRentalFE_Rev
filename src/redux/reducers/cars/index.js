@@ -1,5 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { getCars } from './api';
+
 const initialState = {
     data: null, // variable untuk menyimpan data user
     status: 'idle', // 'idle' | 'loading' | 'success' | 'failed'
@@ -28,6 +29,7 @@ export const carSlice = createSlice({
             console.log(action);
             state.message = action.payload;
         });
+       
     }
 });
 

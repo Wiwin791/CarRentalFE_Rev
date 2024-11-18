@@ -1,9 +1,10 @@
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native'
+import { View, Text, Image, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import React, { useEffect } from 'react'
+import React, { useEffect } from 'react';
 import Button from '../components/Button';
 import { useSelector, useDispatch } from 'react-redux';
 import { getProfile, selectUser, logout, resetState } from '../redux/reducers/user';
+import Icon from 'react-native-vector-icons/Feather'; // Import icons from react-native-vector-icons
 
 export default function Akun() {
     const navigation = useNavigation();
@@ -16,10 +17,11 @@ export default function Akun() {
         }
     }, [user]);
 
-    const handleLogout =()=> {
+    const handleLogout = () => {
         dispatch(resetState());
         dispatch(logout());
-    }
+    };
+
     return (
         <View style={styles.container}>
             {
@@ -40,6 +42,47 @@ export default function Akun() {
                             style={styles.avatar} 
                         />
                         <Text style={styles.greeting}>Halo, {user.data?.fullname}</Text>
+
+                        {/* Display additional user information with icons */}
+                        <View style={styles.userInfo}>
+                            {user.data?.email && (
+                                <View style={styles.userDetailRow}>
+                                    <Icon name="mail" size={20} color="#555" style={styles.icon} />
+                                    <Text style={styles.userDetail}>Email: {user.data.email}</Text>
+                                </View>
+                            )}
+                            {user.data?.phone && (
+                                <View style={styles.userDetailRow}>
+                                    <Icon name="phone" size={20} color="#555" style={styles.icon} />
+                                    <Text style={styles.userDetail}>Phone: {user.data.phone}</Text>
+                                </View>
+                            )}
+                            {user.data?.address && (
+                                <View style={styles.userDetailRow}>
+                                    <Icon name="map-pin" size={20} color="#555" style={styles.icon} />
+                                    <Text style={styles.userDetail}>Address: {user.data.address}</Text>
+                                </View>
+                            )}
+                            {user.data?.dob && (
+                                <View style={styles.userDetailRow}>
+                                    <Icon name="calendar" size={20} color="#555" style={styles.icon} />
+                                    <Text style={styles.userDetail}>Date of Birth: {new Date(user.data.dob).toLocaleDateString()}</Text>
+                                </View>
+                            )}
+                            {user.data?.gender && (
+                                <View style={styles.userDetailRow}>
+                                    <Icon name="users" size={20} color="#555" style={styles.icon} />
+                                    <Text style={styles.userDetail}>Gender: {user.data.gender}</Text>
+                                </View>
+                            )}
+                            {user.data?.nationality && (
+                                <View style={styles.userDetailRow}>
+                                    <Icon name="globe" size={20} color="#555" style={styles.icon} />
+                                    <Text style={styles.userDetail}>Nationality: {user.data.nationality}</Text>
+                                </View>
+                            )}
+                        </View>
+
                         <Button
                             onPress={handleLogout}
                             title={'Logout'}
@@ -49,7 +92,7 @@ export default function Akun() {
                     </View>
             }
         </View>
-    )
+    );
 }
 
 const styles = StyleSheet.create({
@@ -106,6 +149,26 @@ const styles = StyleSheet.create({
         fontWeight: '600', 
         color: '#333', 
         marginBottom: 20,
+    },
+    userInfo: {
+        marginBottom: 20,
+        width: '100%',
+        paddingHorizontal: 20,
+        alignItems: 'flex-start',
+    },
+    userDetailRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    userDetail: {
+        fontSize: 16,
+        color: '#555',
+        marginLeft: 10,
+        fontWeight: '500',
+    },
+    icon: {
+        marginRight: 10,
     },
     logoutButton: {
         backgroundColor: '#A43333',

@@ -22,7 +22,7 @@ import CarList from '../components/CarList';
 import FocusAwareStatusBar from '../components/FocusAwareStatusBar';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
-import { selectUser } from '../redux/reducers/user';
+import { selectUser,resetState } from '../redux/reducers/user';
 import { getCars, selectCars } from '../redux/reducers/cars';
 
 const COLORS = {
@@ -56,6 +56,11 @@ function Home() {
             console.log(car.data)
         }
     }, [user, dispatch]))
+
+    const handleNav = () => {
+      navigation.navigate('SignIn')
+      dispatch(resetState())
+    }
 
   const backgroundStyle = {
     // overflow: 'visible',
@@ -118,7 +123,7 @@ function Home() {
               
             </Text>
             <View style={styles.loginButtonContainer}>
-              <Button title="Login" onPress={() => navigation.navigate('SignIn')} />
+              <Button title="Login" onPress={handleNav} />
             </View>
           </View>
         ) : (

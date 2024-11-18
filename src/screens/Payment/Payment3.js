@@ -1,155 +1,282 @@
-import React, { useEffect } from 'react'
-import { View, Text, Image, TouchableOpacity, StyleSheet, Dimensions } from 'react-native'
-import Icon from 'react-native-vector-icons/Feather';
-import { useNavigation } from '@react-navigation/native';
-import { formatCurrency } from '../../utils/formatCurrency';
-import { format, addDays } from 'date-fns';
-import { id } from 'date-fns/locale';
-import CountDown from 'react-native-countdown-component-maintained';
+import {useFocusEffect, useRoute} from '@react-navigation/native';
+import React, {useEffect, useState, useRef} from 'react';
 
-export default function Payment3({ route }) {
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  SafeAreaView,
+  Image,
+} from 'react-native';
+import Icon from 'react-native-vector-icons/Feather';
+import {useNavigation} from '@react-navigation/native';
+import { selectUser } from '../../redux/reducers/user';
+import {useSelector, useDispatch} from 'react-redux';
+import { setEndTime, selectEndTime, clearTime, setBank, selectBank, clear } from '../../redux/reducers/timer';
+
+export default function Payment3() {
+  const user = useSelector(selectUser);
+  const timer = useSelector(selectEndTime);
+  const reduxBank = useSelector(selectBank)
+  const [timeNow, setTimeNow] = useState({hours: 0, minutes: 0, seconds: 0});
+  const [timeSet, setTimeSet] = useState({hours: 24, minutes: 0, seconds: 0});
+  const [targetTime, setTargetTime] = useState('');
+  const intervalRef = useRef(null);
+
   const navigation = useNavigation();
-  const currentDate = new Date();
-  const newDate = addDays(currentDate, 1);
-  const { carDetails, selectedPaymentMethod } = route.params;
-  const formattedDate = format(newDate, "eeee, dd MMM yyyy 'jam' HH:mm", { locale: id });
+  const dispatch = useDispatch();
+  const route = useRoute();
+  const {bank, car, totalPrice} = route.params;
+
+  useFocusEffect(
+    React.useCallback(()=> {
+  dispatch(setBank(bank.name))
+},[])
+)
+
+  const clearTimer = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    const now = new Date();
+    const target = new Date(
+      now.getTime() +
+        timeSet.hours * 60 * 60 * 1000 +
+        timeSet.minutes * 60 * 1000 +
+        timeSet.seconds * 1000,
+    );
+
+    const formattedTime = target.toLocaleString('id-ID', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZoneName: 'short',
+    });
+
+    setTargetTime(formattedTime);
+  }, [timeSet]);
+
+  useEffect(() => {
+    if (!timer) {
+      const now = new Date().getTime();
+      const newTimer =
+        now +
+        (timeSet.hours * 60 * 60 * 1000 +
+          timeSet.minutes * 60 * 1000 +
+          timeSet.seconds * 1000);
+      dispatch(setEndTime(newTimer));
+    }
+  }, [dispatch, timer]);
+
+  const handleNextPayment = () => {
+
+    navigation.navigate('Payment5', {
+      // bank: bank,
+      car : car,
+      // totalPrice: totalPrice,
+      // startDate: startDate,
+      // endDate: endDate,
+    })
+
+  };
+
+  const calculateTime = () => {
+    if (!timer) return;
+    const now = new Date().getTime();
+
+    const updateTime = timer - now;
+
+    if (updateTime <= 0) {
+      setTimeNow({hours: 0, minutes: 0, seconds: 0});
+      clearTimer();
+      dispatch(clearTime());
+      return;
+    }
+
+    const hours = Math.floor(updateTime / (1000 * 60 * 60));
+    const minutes = Math.floor((updateTime % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((updateTime % (1000 * 60)) / 1000);
+
+    setTimeNow({hours, minutes, seconds});
+  };
+
+  useEffect(() => {
+  
+    if (timer) calculateTime();
+    intervalRef.current = setInterval(() => {
+      calculateTime();
+    }, 1000);
+    return () => clearTimer();
+  }, [timer]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if(reduxBank !== bank.name){
+        dispatch(clear())
+      }
+    },[])
+  )
+
+  const steps = [
+    {id: 1, title: 'Pilih Metode', active: true, completed: true},
+    {id: 2, title: 'Bayar', active: true, completed: false},
+    {id: 3, title: 'Tiket', active: false, completed: false},
+  ];
+
+  const renderStepIndicator = () => (
+    <View style={styles.stepContainer}>
+      {steps.map((step, index) => (
+        <View key={step.id} style={styles.stepWrapper}>
+          <View style={styles.stepNumberWrapper}>
+            <View
+              style={[
+                styles.stepNumber,
+                {
+                  backgroundColor: step.completed
+                    ? '#22c55e'
+                    : step.active
+                    ? '#22c55e'
+                    : '#e5e7eb',
+                },
+              ]}>
+              {step.completed ? (
+                <Icon name="check" size={12} color="white" />
+              ) : (
+                <Text
+                  style={[
+                    styles.stepNumberText,
+                    {color: step.active ? 'white' : '#6b7280'},
+                  ]}>
+                  {step.id}
+                </Text>
+              )}
+            </View>
+            <Text style={styles.stepTitle}>{step.title}</Text>
+          </View>
+          {index < steps.length - 1 && (
+            <View
+              style={[
+                styles.stepLine,
+                {backgroundColor: step.completed ? '#22c55e' : '#e5e7eb'},
+              ]}
+            />
+          )}
+        </View>
+      ))}
+    </View>
+  );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Icon size={32} name={'arrow-left'} color={'black'} />
-        </TouchableOpacity>
-        <View>
-          <Text style={styles.headerTitle}>{selectedPaymentMethod}</Text>
-          <Text style={styles.orderNumber}>Order ID: xxxxxxxx</Text>
-        </View>
-      </View>
-
-      {/* Progress Steps */}
-      <View style={styles.progressContainer}>
-        <View style={styles.progressStep}>
-          <View style={[styles.stepCircle, styles.activeStep]}>
-            <Text style={styles.stepNumber}>✓</Text>
-          </View>
-          <Text style={styles.stepText}>Pilih Metode</Text>
-        </View>
-        <View style={[styles.progressLine, styles.activeLine]} />
-        <View style={styles.progressStep}>
-          <View style={[styles.stepCircle, styles.activeStep]}>
-            <Text style={styles.stepNumber}>2</Text>
-          </View>
-          <Text style={styles.stepText}>Bayar</Text>
-        </View>
-        <View style={styles.progressLine} />
-        <View style={styles.progressStep}>
-          <View style={styles.stepCircle}>
-            <Text style={styles.stepNumber}>3</Text>
-          </View>
-          <Text style={styles.stepText}>Tiket</Text>
-        </View>
-      </View>
-
-      {/* Timer */}
-      <View style={styles.timerContainer}>
-        <Text style={styles.timerText}>
-          Selesaikan Pembayaran Sebelum{' '}
-          <CountDown style={styles.timerDigits}
-            size={10.5}
-            until={86400}
-            onFinish={() => alert('Finished')}
-            digitStyle={{ backgroundColor: '#FA2C5A' }}
-            digitTxtStyle={{ color: 'white', fontSize: 18 }}
-            timeLabelStyle={{ color: 'red', fontWeight: 'bold' }}
-            separatorStyle={{ color: 'black' }}
-            timeToShow={['H', 'M', 'S']}
-            timeLabels={{ m: null, s: null }}
-            showSeparator
-          />
-        </Text>
-        <Text style={styles.dateText}>{formattedDate} WIB</Text>
-      </View>
-
-      {/* Vehicle Details */}
-      <View style={styles.vehicleContainer}>
-        <Image
-          source={{ uri: carDetails.img }}
-          style={styles.vehicleImage}
-        />
-        <View style={styles.vehicleDetails}>
-          <Text style={styles.vehicleName}>{carDetails.name}</Text>
-          <View style={styles.vehicleIcons}>
-            <View style={styles.iconContainer}>
-              <Icon size={14} name={'users'} color={'#8A8A8A'} />
-              <Text style={styles.iconText}>{carDetails.seat}</Text>
-            </View>
-            <View style={styles.iconContainer}>
-              <Icon size={14} name={'briefcase'} color={'#8A8A8A'} />
-              <Text style={styles.iconText}>{carDetails.baggage}</Text>
-            </View>
-          </View>
-        </View>
-        <Text style={styles.price}>{formatCurrency.format(carDetails.price || 0)}</Text>
-      </View>
-
-      {/* Transfer Details */}
-      <View style={styles.transferContainer}>
-        <Text style={styles.transferTitle}>Lakukan Transfer ke</Text>
-        <View style={styles.bankContainer}>
-          <View style={styles.bankButton}>
-            <Text style={styles.bankText}>{selectedPaymentMethod}</Text>
-
-          </View>
-          <View>
-            <Text >{selectedPaymentMethod} Transfer</Text>
-          </View>
-          <View>
-          </View>
-        </View>
-        <View>
-          <Text style={styles.bankSubtext}>a.n Jeep Bromo Online</Text>
-        </View>
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Nomor Rekening</Text>
-          <View style={styles.inputWrapper}>
-            <Text style={styles.input}>xxxx-xxxx-xxxx</Text>
-            <TouchableOpacity>
-              <Icon size={20} name={'copy'} color={'#8A8A8A'} />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Total Bayar</Text>
-          <View style={styles.inputWrapper}>
-            <Text style={styles.input}>{formatCurrency.format(carDetails.price || 0)}</Text>
-            <TouchableOpacity>
-              <Icon size={20} name={'copy'} color={'#8A8A8A'} />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-
-      {/* Bottom Buttons */}
-      <View style={styles.bottomContainer}>
-        <Text style={styles.bottomText}>
-          Klik konfirmasi pembayaran untuk mempercepat proses pengeceken
-        </Text>
         <TouchableOpacity
-          style={styles.payButton}
-          onPress={() => {
-            navigation.navigate('Payment5');
-          }}
-        >
-          <Text style={styles.payButtonText}>Lanjutkan Pembayaran</Text>
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}>
+          <Icon name="arrow-left" size={24} color="#000" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.orderListButton}>
-          <Text style={styles.orderListButtonText}>Lihat Daftar Pesanan</Text>
-        </TouchableOpacity>
+        <View>
+          <Text style={styles.headerTitle}>{bank.subtitle}</Text>
+          <Text style={styles.orderId}>Order ID: xxxxxxxx</Text>
+        </View>
       </View>
-    </View>
-  )
+
+      {/* Step Indicator */}
+      {renderStepIndicator()}
+
+      <ScrollView style={styles.content}>
+        {/* Timer */}
+        <View style={styles.timerSection}>
+          <Text style={styles.timerLabel}>Selesaikan Pembayaran Sebelum</Text>
+          <View style={styles.timerContainer}>
+            <Text style={styles.timerText}>
+              {String(timeNow.hours).padStart(2, '0')}:
+              {String(timeNow.minutes).padStart(2, '0')}:
+              {String(timeNow.seconds).padStart(2, '0')}
+            </Text>
+          </View>
+          <Text style={styles.dateText}>{targetTime}</Text>
+        </View>
+
+        {/* Car Details */}
+        <View style={styles.carDetails}>
+          <Image source={{uri: car.img}} style={styles.carImage} />
+          <View style={styles.carInfo}>
+            <Text style={styles.carName}>{car.name}</Text>
+            <View style={styles.carMetrics}>
+              <View style={styles.metric}>
+                <Icon name="users" size={16} color="#6b7280" />
+                <Text style={styles.metricText}>4</Text>
+              </View>
+              <View style={styles.metric}>
+                <Icon name="briefcase" size={16} color="#6b7280" />
+                <Text style={styles.metricText}>2</Text>
+              </View>
+            </View>
+          </View>
+          <Text style={styles.price}>{totalPrice}</Text>
+        </View>
+
+        {/* Transfer Details */}
+
+        <View style={styles.transferSection}>
+          <Text style={styles.sectionTitle}>Lakukan Transfer ke</Text>
+          <View style={styles.bankCard}>
+            <Text style={styles.bankName}>{bank.name}</Text>
+            <Text style={styles.bankSubtitle}>{bank.subtitle}</Text>
+            <Text style={styles.bankNote}>{user.data.fullname}</Text>
+          </View>
+
+          <View style={styles.accountSection}>
+            <Text style={styles.fieldLabel}>Nomor Rekening</Text>
+            <View style={styles.copyField}>
+              <Text style={styles.accountNumber}>xxxx-xxxx-xxxx</Text>
+              <TouchableOpacity>
+                <Icon name="copy" size={20} color="#22c55e" />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.fieldLabel}>Total Bayar</Text>
+            <View style={styles.copyField}>
+              <Text style={styles.totalAmount}>{totalPrice}</Text>
+              <TouchableOpacity>
+                <Icon name="copy" size={20} color="#22c55e" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+
+        <View style={[styles.noteSection, styles.bottomSection]}>
+          <Text style={styles.noteText}>
+            Klik konfirmasi pembayaran untuk mempercepat proses pengecekan
+          </Text>
+
+          {/* Bottom Buttons */}
+          <View style={styles.bottomSection2}>
+            <TouchableOpacity style={styles.confirmButton} onPress={handleNextPayment}>
+              <Text style={styles.confirmButtonText}>
+                Konfirmasi Pembayaran
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.orderListButton}>
+              <Text style={styles.orderListButtonText}>
+                Lihat Daftar Pesanan
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -162,186 +289,199 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#e5e7eb',
   },
   backButton: {
+    padding: 8,
     marginRight: 16,
   },
   headerTitle: {
-    marginLeft: 10,
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
   },
-  orderNumber: {
-    marginLeft: 10,
+  orderId: {
     fontSize: 14,
-    color: '#666',
+    color: '#6b7280',
   },
-  progressContainer: {
+  stepContainer: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
     padding: 16,
+    alignItems: 'center',
+    backgroundColor: '#fff',
   },
-  progressStep: {
+  stepWrapper: {
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
   },
-  stepCircle: {
+  stepNumberWrapper: {
+    alignItems: 'center',
+  },
+  stepNumber: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#eee',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  activeStep: {
-    backgroundColor: '#4CAF50',
-  },
-  stepNumber: {
-    color: '#fff',
+  stepNumberText: {
     fontSize: 12,
+    fontWeight: '600',
   },
-  stepText: {
+  stepTitle: {
     fontSize: 12,
+    color: '#6b7280',
     marginTop: 4,
-    color: '#666',
   },
-  progressLine: {
-    width: 40,
+  stepLine: {
+    flex: 1,
     height: 2,
-    backgroundColor: '#eee',
     marginHorizontal: 8,
   },
-  activeLine: {
-    backgroundColor: '#4CAF50',
+  content: {
+    flex: 1,
   },
-  timerContainer: {
+  timerSection: {
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#e5e7eb',
+  },
+  timerLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  timerContainer: {
+    marginBottom: 4,
   },
   timerText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  timerDigits: {
-    alignItems: 'center',
-    marginBottom: 20
+    fontSize: 16,
+    color: '#ef4444',
+    fontWeight: '600',
   },
   dateText: {
-    fontSize: 16,
-    color: '#666',
-    marginTop: -5,
-    fontWeight: 'bold'
+    fontSize: 14,
+    color: '#6b7280',
   },
-  vehicleContainer: {
+  carDetails: {
     flexDirection: 'row',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#e5e7eb',
+    alignItems: 'center',
   },
-  vehicleImage: {
-    width: 80,
+  carImage: {
+    width: 85,
     height: '100%',
-    backgroundColor: 'transparent',
+    borderRadius: 4,
   },
-  vehicleDetails: {
+  carInfo: {
     flex: 1,
     marginLeft: 12,
   },
-  vehicleName: {
+  carName: {
     fontSize: 16,
     fontWeight: '600',
   },
-  vehicleIcons: {
+  carMetrics: {
     flexDirection: 'row',
     marginTop: 4,
   },
-  iconContainer: {
+  metric: {
     flexDirection: 'row',
     alignItems: 'center',
     marginRight: 12,
   },
-  iconText: {
+  metricText: {
     marginLeft: 4,
-    color: '#666',
+    color: '#6b7280',
   },
   price: {
-    marginTop: 13,
     fontSize: 16,
     fontWeight: '600',
-    color: '#4CAF50',
+    color: '#22c55e',
   },
-  transferContainer: {
+  transferSection: {
     padding: 16,
   },
-  transferTitle: {
+  sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    marginBottom: 12,
-  },
-  bankContainer: {
-    flexDirection: 'row',
-    marginBottom: 8,
-  },
-  bankButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 4,
-    backgroundColor: '#f5f5f5',
-    marginRight: 8,
-  },
-  bankButtonActive: {
-    backgroundColor: '#E8F5E9',
-  },
-  bankText: {
-    color: '#666',
-  },
-  bankTextActive: {
-    color: '#4CAF50',
-  },
-  bankSubtext: {
-    fontSize: 14,
-    color: '#666',
-    marginLeft: 84,
-    marginTop: -25
-  },
-  inputContainer: {
     marginBottom: 16,
   },
-  inputLabel: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 4,
-    marginTop: 8
+  bankCard: {
+    padding: 16,
+    backgroundColor: '#f9fafb',
+    borderRadius: 8,
+    marginBottom: 16,
   },
-  inputWrapper: {
+  bankName: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  bankSubtitle: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginTop: 2,
+  },
+  bankNote: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginTop: 4,
+  },
+  accountSection: {
+    gap: 8,
+  },
+  fieldLabel: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginBottom: 4,
+  },
+  copyField: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 12,
     borderWidth: 1,
-    borderColor: '#eee',
-    borderRadius: 4,
-  },
-  input: {
-    fontSize: 16,
-  },
-  bottomContainer: {
-    padding: 16,
-  },
-  bottomText: {
-    fontSize: 14,
-    color: '#666',
+    borderColor: '#e5e7eb',
+    borderRadius: 8,
     marginBottom: 16,
-    textAlign: 'center',
+  },
+  accountNumber: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  totalAmount: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  noteSection: {
+    padding: 16,
+    backgroundColor: '#f9fafb',
+  },
+  noteText: {
+    fontSize: 20,
+    fontWeight: 800,
+    color: '#6b7280',
+    textAlign: 'left',
+    width: '70%',
+  },
+  bottomSection: {
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+    gap: 8,
+  },
+  bottomSection2: {
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+    gap: 20,
   },
   confirmButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#22c55e',
     padding: 16,
-    borderRadius: 4,
+    borderRadius: 8,
     alignItems: 'center',
-    marginBottom: 8,
   },
   confirmButtonText: {
     color: '#fff',
@@ -350,26 +490,14 @@ const styles = StyleSheet.create({
   },
   orderListButton: {
     padding: 16,
-    borderRadius: 4,
+    borderRadius: 8,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#4CAF50',
+    borderColor: '#22c55e',
   },
   orderListButtonText: {
-    color: '#4CAF50',
+    color: '#22c55e',
     fontSize: 16,
     fontWeight: '600',
   },
-  payButton: {
-    backgroundColor: '#3D7B3F',
-    borderRadius: 8,
-    padding: 16,
-    alignItems: 'center',
-    marginBottom: 15
-},
-payButtonText: {
-  color: '#fff',
-  fontSize: 16,
-  fontWeight: '600',
-},
-})
+});
