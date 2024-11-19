@@ -1,6 +1,6 @@
 
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import React, { useState,useCallback  } from 'react';
+import React, { useState,useCallback, useEffect  } from 'react';
 import {
   View,
   Text,
@@ -14,14 +14,18 @@ import {
 import Icon from 'react-native-vector-icons/Feather';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { formatCurrency } from '../../utils/formatCurrency';
+import {useDispatch, useSelector} from 'react-redux';
+import { selectOrder,postOrder } from '../../redux/reducers/order';
 
 
 const Payment1 = ({route}) => {
-  const {car} = route.params;
+  const {car, id} = route.params;
   const [activeStep, setActiveStep] = useState(1);
   const [selectedBank, setSelectedBank] = useState('');
   const [promoCode, setPromoCode] = useState('');
   const navigation = useNavigation();
+  const dispatch = useDispatch();
+  const order = useSelector(selectOrder);
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(() => {
     const tomorrow = new Date();
@@ -51,6 +55,21 @@ const Payment1 = ({route}) => {
     {id: 'mandiri', name: 'Mandiri', subtitle: 'Mandiri Transfer'},
   ];
   const bank = banks.find(bank => bank.id === selectedBank); // filter bank yang dipilih untuk kirim data ke next screen
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (id) {
+        console.log('Dispatching postOrder with id:', id);
+        dispatch(postOrder(id));
+      } else {
+        console.log('ID is not available');
+      }
+    }, [id]),
+  );
+
+  useEffect(() => {
+    console.log("ini order:", order);
+  }, [order]);
 
   const handleNextPayment = () => {
 

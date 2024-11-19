@@ -15,6 +15,7 @@ import SignUp from './src/screens/SignUp';
 import Detail from './src/screens/Detail';
 import Payment1 from './src/screens/Payment/Payment1';
 import Payment3 from './src/screens/Payment/Payment3';
+import Payment4 from './src/screens/Payment/Payment4';
 import Payment5 from './src/screens/Payment/Payment5';
 
 const Tab = createBottomTabNavigator();
@@ -75,6 +76,9 @@ function App() {
             <Stack.Screen options={{
               headerShown: false
             }} name="Payment3" component={Payment3} />
+            <Stack.Screen options={{
+              headerShown: false
+            }} name="Payment4" component={Payment4} />
             <Stack.Screen options={{
               headerShown: false
             }} name="Payment5" component={Payment5} />

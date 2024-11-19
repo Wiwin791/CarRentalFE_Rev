@@ -372,8 +372,7 @@ const styles = StyleSheet.create({
   },
   carImage: {
     width: 85,
-    height: '100%',
-    borderRadius: 4,
+    height: '110%',
   },
   carInfo: {
     flex: 1,
@@ -478,7 +477,7 @@ const styles = StyleSheet.create({
     gap: 20,
   },
   confirmButton: {
-    backgroundColor: '#22c55e',
+    backgroundColor: '#3D7B3F',
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
