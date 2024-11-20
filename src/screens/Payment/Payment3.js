@@ -241,7 +241,7 @@ export default function Payment3() {
             <View style={styles.copyField}>
               <Text style={styles.accountNumber}>xxxx-xxxx-xxxx</Text>
               <TouchableOpacity>
-                <Icon name="copy" size={20} color="#22c55e" />
+                <Icon name="copy" size={20} color="#6b7280" />
               </TouchableOpacity>
             </View>
 
@@ -249,7 +249,7 @@ export default function Payment3() {
             <View style={styles.copyField}>
               <Text style={styles.totalAmount}>{totalPrice}</Text>
               <TouchableOpacity>
-                <Icon name="copy" size={20} color="#22c55e" />
+                <Icon name="copy" size={20} color="#6b7280" />
               </TouchableOpacity>
             </View>
           </View>

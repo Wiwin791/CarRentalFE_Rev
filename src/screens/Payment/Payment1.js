@@ -1,6 +1,5 @@
-
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import React, { useState,useCallback, useEffect  } from 'react';
+import React, {useState, useCallback, useEffect} from 'react';
 import {
   View,
   Text,
@@ -13,23 +12,27 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { formatCurrency } from '../../utils/formatCurrency';
+import {formatCurrency} from '../../utils/formatCurrency';
+import {selectUser} from '../../redux/reducers/user';
 import {useDispatch, useSelector} from 'react-redux';
-import { selectOrder,postOrder } from '../../redux/reducers/order';
-
+import {selectOrder, postOrder} from '../../redux/reducers/order';
+import {Picker} from '@react-native-picker/picker';
 
 const Payment1 = ({route}) => {
   const {car, id} = route.params;
+  const user = useSelector(selectUser);
   const [activeStep, setActiveStep] = useState(1);
   const [selectedBank, setSelectedBank] = useState('');
   const [promoCode, setPromoCode] = useState('');
+  const [driverOption, setDriverOption] = useState('withoutDriver');
   const navigation = useNavigation();
   const dispatch = useDispatch();
+  const [isDriver, setIsDriver] = useState(false);
   const order = useSelector(selectOrder);
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(() => {
     const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1); 
+    tomorrow.setDate(tomorrow.getDate() + 1);
     return tomorrow;
   });
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
@@ -59,7 +62,7 @@ const Payment1 = ({route}) => {
   useFocusEffect(
     React.useCallback(() => {
       if (id) {
-        console.log('Dispatching postOrder with id:', id);
+        console.log('Received ID:', id)
         dispatch(postOrder(id));
       } else {
         console.log('ID is not available');
@@ -68,19 +71,40 @@ const Payment1 = ({route}) => {
   );
 
   useEffect(() => {
-    console.log("ini order:", order);
+    console.log('ini order:', order);
   }, [order]);
 
   const handleNextPayment = () => {
+    const orderData = {
+      car_id: id,
+      is_driver: isDriver,
+      start_time: startDate,
+      end_time: endDate,
+      payment_method: selectedBank,
+    };
+  
+    navigation.navigate('Payment1', {
+      orderData: orderData, 
+    });
+  
+    console.log('Order Data:', orderData);
 
-    navigation.navigate('Payment3', {
-      bank: bank,
-      car : car,
-      totalPrice: totalPrice,
-      startDate: startDate,
-      endDate: endDate,
-    })
+    dispatch(
+      postOrder({
+        form: orderData,
+        token: user.token,
+      }),
+    );
 
+    if (order.status === 'success')
+      navigation.navigate('Payment3', {
+        bank: bank,
+        car: car,
+        totalPrice: totalPrice,
+        startDate: startDate,
+        endDate: endDate,
+        driverOption: driverOption,
+      });
   };
   const steps = [
     {id: 1, title: 'Pilih Metode'},
@@ -88,7 +112,6 @@ const Payment1 = ({route}) => {
     {id: 3, title: 'Tiket'},
   ];
 
- 
   const renderStepIndicator = () => (
     <View style={styles.stepContainer}>
       {steps.map((step, index) => (
@@ -159,9 +182,24 @@ const Payment1 = ({route}) => {
           </View>
           <Text style={styles.price}>{formatIDR(car.price)}</Text>
         </View>
+
+        {/* Driver Option */}
+        <View style={styles.driverSelection}>
+          <Text style={styles.sectionTitle}>Pilih Pengemudi</Text>
+          <Picker
+            selectedValue={driverOption}
+            style={styles.picker}
+            onValueChange={itemValue => {
+              setDriverOption(itemValue);
+              setIsDriver(itemValue === 'withDriver');
+            }}>
+            <Picker.Item label="Dengan Pengemudi" value="withDriver" />
+            <Picker.Item label="Tanpa Pengemudi" value="withoutDriver" />
+          </Picker>
+        </View>
+
         <View style={styles.datePickerContainer}>
           <Text style={styles.sectionTitle}>Select Dates</Text>
-
           {/* Start Date Picker */}
           <TouchableOpacity
             style={styles.dateField}
@@ -246,8 +284,6 @@ const Payment1 = ({route}) => {
             </TouchableOpacity>
           </View>
         </View>
-
-       
       </ScrollView>
 
       {/* Bottom Section */}
@@ -257,7 +293,10 @@ const Payment1 = ({route}) => {
           <Icon name="chevron-down" size={20} color="#000" />
         </View>
         <TouchableOpacity
-          style={[styles.payButton, !(selectedBank && endDate) &&  styles.payButtonDisabled]}
+          style={[
+            styles.payButton,
+            !(selectedBank && endDate) && styles.payButtonDisabled,
+          ]}
           disabled={!(selectedBank && endDate)}
           onPress={handleNextPayment}>
           <Text style={styles.payButtonText}>Bayar</Text>
@@ -395,6 +434,36 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#22c55e',
+  },
+  driverSelection: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+    marginBottom: 16,
+  },
+  driverOptions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  driverOption: {
+    padding: 12,
+    backgroundColor: '#f9fafb',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    width: '48%',
+    alignItems: 'center',
+  },
+  driverOptionSelected: {
+    backgroundColor: '#22c55e',
+  },
+  driverOptionText: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  picker: {
+    height: 50,
+    width: '100%',
   },
   section: {
     padding: 16,

@@ -6,7 +6,7 @@ export const postLogin = createAsyncThunk(
     async (payload, { rejectWithValue }) => {
         console.log(payload)
         try {
-            const res = await axios.post('http://192.168.1.24:3000/api/v1/auth/signin',
+            const res = await axios.post('http://172.17.32.206:3000/api/v1/auth/signin',
                 JSON.stringify(payload), {
                 headers: {
                     'Content-Type': 'application/json',
@@ -31,7 +31,7 @@ export const getProfile = createAsyncThunk(
     'user/getProfile',
     async (token, { rejectWithValue }) => {
         try {
-            const res = await axios('http://192.168.1.24:3000/api/v1/auth/whoami', {
+            const res = await axios('http://172.17.32.206:3000/api/v1/auth/whoami', {
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,

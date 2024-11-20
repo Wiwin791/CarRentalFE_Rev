@@ -5,7 +5,7 @@ export const getCars = createAsyncThunk(
     'user/getCars',
     async (token, { rejectWithValue }) => {
         try {
-            const res = await axios('http://192.168.1.24:3000/api/v1/cars', {
+            const res = await axios('http://172.17.32.206:3000/api/v1/cars', {
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
@@ -27,7 +27,7 @@ export const getCarsDetails = createAsyncThunk(
     'user/getCarsDetails',
     async (id, { rejectWithValue }) => {
         try {
-            const res = await axios.get(`http://192.168.1.24:3000/api/v1/cars/getId/${id}`);
+            const res = await axios.get(`http://172.17.32.206:3000/api/v1/cars/getId/${id}`);
             return data = res.data
           
             

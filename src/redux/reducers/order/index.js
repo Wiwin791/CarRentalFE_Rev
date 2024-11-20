@@ -10,7 +10,7 @@ const initialState = {
 export const orderSlice = createSlice({
     name: 'order',
     initialState,
-    reducers: { // kumpulan method untuk mengubah initial state secara synchronous8b6d755eae2cc70838571d4a737c681a27ef41
+    reducers: { // kumpulan method untuk mengubah initial state secara synchronous
         resetOrder : (state) => initialState
     },
     extraReducers: (builder) => {
@@ -26,7 +26,6 @@ export const orderSlice = createSlice({
         });
         builder.addCase(postOrder.rejected, (state, action) => {
             state.status = 'failed';
-            console.log(action);
             state.message = action.payload;
         });
        

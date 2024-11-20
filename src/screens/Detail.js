@@ -37,6 +37,15 @@ export default function Detail({route}) {
   const dispatch = useDispatch();
   const car = useSelector(selectDetail);
 
+  const handleNextPayment = () => {
+
+    navigation.navigate('Payment1', {
+      id,
+      car : car.data,
+    })
+
+  };
+
   useFocusEffect(
     React.useCallback(() => {
       if (id) {
@@ -81,9 +90,7 @@ export default function Detail({route}) {
         </Text>
         <TouchableOpacity
           style={styles.payButton}
-          onPress={() => {
-            navigation.navigate('Payment1', {car: car.data});
-          }}>
+          onPress={handleNextPayment}>
           <Text style={styles.payButtonText}>Lanjutkan Pembayaran</Text>
         </TouchableOpacity>
       </View>

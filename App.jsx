@@ -10,6 +10,7 @@ import { store, persistor } from './src/redux/store';
 
 import List from './src/screens/List';
 import Akun from './src/screens/Akun';
+import ListOrder from './src/screens/order/ListOrder';
 import SignIn from './src/screens/SignIn';
 import SignUp from './src/screens/SignUp';
 import Detail from './src/screens/Detail';
@@ -39,6 +40,14 @@ function Tabs(){
         }} 
         name="List" 
         component={List} 
+      />
+      <Tab.Screen 
+        options={{
+          title: 'Daftar Order',
+          tabBarIcon: () => <Icon name={"shopping-cart"} size={25} color="#A43333" />
+        }} 
+        name="ListOrder" 
+        component={ListOrder} 
       />
       <Tab.Screen 
         options={{
