@@ -1,17 +1,14 @@
-import { combineReducers } from '@reduxjs/toolkit';
+import {combineReducers} from '@reduxjs/toolkit';
 import userSlice from './user';
-import carSlice  from './cars/index';
-import detailSlice from './cars/Detail';
-import timerSlice from './timer/index';
-import orderSlice from './order/index'
+import carSlice from './cars'
+import timerSlice from './timer'
+import orderSlcie from './order'
 
 const rootReducer = combineReducers({
-    user: userSlice,
-    cars : carSlice,
-    detail : detailSlice,
-    timer : timerSlice,
-    order : orderSlice
-
-})
+  user: userSlice,
+  cars : carSlice,
+  timer : timerSlice,
+  order : orderSlcie
+});
 
 export default rootReducer;

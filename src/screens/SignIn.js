@@ -1,9 +1,10 @@
-import { KeyboardAvoidingView, Platform, View, Text, Image, TextInput, StyleSheet, ScrollView, ActivityIndicator ,Alert} from 'react-native';
-import React, { useEffect, useState, useCallback } from 'react';
+import { KeyboardAvoidingView, Platform, View, Text, Image, TextInput, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import React, { useState, useCallback } from 'react';
 import Button from '../components/Button';
 import { Link, useNavigation, useFocusEffect } from '@react-navigation/native';
 import ModalPopup from '../components/Modal';
 import Icon from 'react-native-vector-icons/Feather';
+import GoogleButton from '../components/GoogleButton';
 //redux
 import { useDispatch, useSelector } from 'react-redux';
 import { postLogin, selectUser, resetState } from '../redux/reducers/user';
@@ -49,8 +50,6 @@ export default function SignIn() {
           setModalVisible(false);
         }, 2000)
       } 
-      console.log(user.status)
-      console.log(modalVisible)
     }, [user])
   );
 
@@ -59,45 +58,65 @@ export default function SignIn() {
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.authWrapper}>
+        
+        {/* Loading Modal */}
         <ModalPopup visible={user.status === 'loading'}>
-          <View style={{
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}>
+          <View style={styles.loadingContainer}>
             <ActivityIndicator />
           </View>
         </ModalPopup>
+
         <View style={{ flex: 1 }}>
           <Image source={require('../assets/images/logo_tmmin.png')} />
           <Text style={styles.authTitle}>Welcome Back!</Text>
+
+          {/* Login Form */}
           <View>
             <View style={styles.inputWrapper}>
               <Text style={styles.inputLabel}>Email</Text>
-              <TextInput style={styles.input} placeholder='Contoh: johndee@gmail.com' onChangeText={(text) => handleChange(text, 'email')} />
+              <TextInput 
+                style={styles.input} 
+                placeholder='Contoh: johndee@gmail.com' 
+                onChangeText={(text) => handleChange(text, 'email')} />
             </View>
             <View style={styles.inputWrapper}>
               <Text style={styles.inputLabel}>Password</Text>
-              <TextInput style={styles.input} secureTextEntry={true}
-                placeholder='6+ Karakter' onChangeText={(text) => handleChange(text, 'password')} />
+              <TextInput 
+                style={styles.input} 
+                secureTextEntry={true} 
+                placeholder='6+ Karakter' 
+                onChangeText={(text) => handleChange(text, 'password')} />
             </View>
+
             <Button
               onPress={handleSubmit}
               title={'Sign In'}
               color={'#5CB85F'}
             />
           </View>
+
+          {/* OR Separator */}
+          <View style={styles.separatorContainer}>
+            <Text style={styles.orText}>OR</Text>
+          </View>
+
+          {/* Google Sign-In Button */}
+          <GoogleButton />
+
+          {/* Sign Up Link */}
           <View>
             <Text style={styles.authFooterText}>Don’t have an account? <Link screen="SignUp">Sign Up for free</Link></Text>
           </View>
+
+          {/* Modal Popup for Success or Error */}
           <ModalPopup visible={modalVisible}>
             <View style={styles.modalBackground}>
               {errorMessage !== null ?
                 <>
                   <Icon size={32} name={'x-circle'} color="#D9534F" style={styles.iconError} />
                   {Array.isArray(errorMessage) ?
-                    errorMessage.map((e) => {
-                      return <Text>{e.message}</Text>
+                    errorMessage.map((e, index) => {
+                      return <Text key={index}>{e.message}</Text>
                     })
                     :
                     <Text style={styles.errorMessage}>{errorMessage}</Text>
@@ -105,7 +124,7 @@ export default function SignIn() {
                 </>
                 :
                 <>
-                  <Icon size={32} name={'check-circle'} color="#5CB85F" style={styles.iconSuccess}/>
+                  <Icon size={32} name={'check-circle'} color="#5CB85F" style={styles.iconSuccess} />
                   <Text>Berhasil Login!</Text>
                 </>
               }
@@ -124,7 +143,7 @@ const styles = StyleSheet.create({
   },
   authTitle: {
     fontSize: 32,
-    fontWeight: 700,
+    fontWeight: '700',
     textAlign: 'center',
     marginVertical: 20
   },
@@ -132,7 +151,7 @@ const styles = StyleSheet.create({
     marginBottom: 20
   },
   inputLabel: {
-    fontWeight: 700,
+    fontWeight: '700',
   },
   input: {
     borderWidth: 1,
@@ -141,18 +160,18 @@ const styles = StyleSheet.create({
   },
   authFooterText: {
     marginTop: 10,
-    fontWeight: 500,
+    fontWeight: '500',
     textAlign: "center"
   },
   modalBackground: {
     width: '90%',
     backgroundColor: '#fff',
     elevation: 20,
-    borderRadius: 10, // Menambahkan radius untuk sudut yang lebih halus
+    borderRadius: 10,
     padding: 30,
-    justifyContent: 'center', // Menjaga ikon dan teks tetap di tengah
+    justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000', // Menambahkan bayangan agar modal lebih menonjol
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -165,9 +184,23 @@ const styles = StyleSheet.create({
   },
   errorMessage: {
     fontSize: 16,
-    color: '#D9534F', // Warna merah untuk pesan error
+    color: '#D9534F',
     fontWeight: '500',
     textAlign: 'center',
     marginTop: 10,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  separatorContainer: {
+    marginVertical: 20,
+    alignItems: 'center',
+  },
+  orText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#888',
   },
 })

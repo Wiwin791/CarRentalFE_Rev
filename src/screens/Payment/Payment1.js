@@ -12,35 +12,51 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import {formatCurrency} from '../../utils/formatCurrency';
-import {selectUser} from '../../redux/reducers/user';
-import {useDispatch, useSelector} from 'react-redux';
-import {selectOrder, postOrder} from '../../redux/reducers/order';
+import { formatCurrency } from '../../utils/formatCurrency';
 import {Picker} from '@react-native-picker/picker';
+import ModalPopup from '../../components/Modal';
+import { logout, resetState, selectUser } from '../../redux/reducers/user';
+import {
+  selectOrder,
+  postOrder,
+  updateOrder,
+  getOrderDetail,
+  resetOrder,
+} from '../../redux/reducers/order';
+import {selectBankName, clear} from '../../redux/reducers/timer';
+
+import {useSelector, useDispatch} from 'react-redux';
+import { resetCar } from '../../redux/reducers/cars';
 
 const Payment1 = ({route}) => {
-  const {car, id} = route.params;
+  const {cars} = route.params;
   const user = useSelector(selectUser);
+  const order = useSelector(selectOrder);
+  const reduxBank = useSelector(selectBankName);
+  const dispatch = useDispatch();
+  const [updated, setUpdated] = useState(false);
   const [activeStep, setActiveStep] = useState(1);
   const [selectedBank, setSelectedBank] = useState('');
   const [promoCode, setPromoCode] = useState('');
-  const [driverOption, setDriverOption] = useState('withoutDriver');
   const navigation = useNavigation();
-  const dispatch = useDispatch();
-  const [isDriver, setIsDriver] = useState(false);
-  const order = useSelector(selectOrder);
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(() => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     return tomorrow;
   });
+
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
   const formatIDR = useCallback(price => formatCurrency.format(price), []);
+
   const diffTime = Math.abs(endDate - startDate);
   const rentalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  const totalPrice = formatIDR(car.price * rentalDays);
+  const totalPrice = formatIDR(cars.price * rentalDays);
+
+  const [isDriver, setIsDriver] = useState(false);
+  const [modalVisibile, setModalVisible] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
 
   const handleStartDateChange = (event, selectedDate) => {
     setShowStartDatePicker(false);
@@ -52,6 +68,17 @@ const Payment1 = ({route}) => {
     if (selectedDate) setEndDate(selectedDate);
   };
 
+  const formatDate = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`; // Format YYYY-MM-DD
+  };
+//convert ke string dari tanggal biasa
+  const start_time = formatDate(new Date(startDate))
+  const end_time = formatDate(new Date(endDate))
+
+
   const banks = [
     {id: 'bca', name: 'BCA', subtitle: 'BCA Transfer'},
     {id: 'bni', name: 'BNI', subtitle: 'BNI Transfer'},
@@ -59,53 +86,85 @@ const Payment1 = ({route}) => {
   ];
   const bank = banks.find(bank => bank.id === selectedBank); // filter bank yang dipilih untuk kirim data ke next screen
 
-  useFocusEffect(
-    React.useCallback(() => {
-      if (id) {
-        console.log('Received ID:', id)
-        dispatch(postOrder(id));
-      } else {
-        console.log('ID is not available');
-      }
-    }, [id]),
-  );
-
-  useEffect(() => {
-    console.log('ini order:', order);
-  }, [order]);
-
-  const handleNextPayment = () => {
-    const orderData = {
-      car_id: id,
+  const handleNextPayment = async () => {
+    
+    const data = {
+      car_id: cars.id,
+      start_time: start_time,
+      end_time: end_time,
       is_driver: isDriver,
+      payment_method: bank.name,
+    };
+
+   
+    const dataUpdate = {
       start_time: startDate,
       end_time: endDate,
-      payment_method: selectedBank,
+      is_driver: isDriver,
+      payment_method: bank.name,
     };
-  
-    navigation.navigate('Payment1', {
-      orderData: orderData, 
-    });
-  
-    console.log('Order Data:', orderData);
 
-    dispatch(
-      postOrder({
-        form: orderData,
-        token: user.token,
-      }),
-    );
-
-    if (order.status === 'success')
-      navigation.navigate('Payment3', {
-        bank: bank,
-        car: car,
-        totalPrice: totalPrice,
-        startDate: startDate,
-        endDate: endDate,
-        driverOption: driverOption,
-      });
+    if (!order.data) {
+      dispatch(postOrder({form: data, token: user.token}));
+      setUpdated(false);
+    } else {
+      dispatch(
+        updateOrder({
+          id: order.data.id,
+          form: dataUpdate,
+          token: user.token,
+        }),
+      );
+      setUpdated(true);
+    
+    }
   };
+
+  useEffect(() => {
+    
+    if (reduxBank !== selectedBank) {
+      dispatch(clear());
+    }
+  }, [reduxBank]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (order.status === 'success' || !reduxBank === banks.name) {
+        setModalVisible(true);
+        setErrorMessage(null);
+        setTimeout(() => {
+          setModalVisible(false);
+          navigation.navigate('Payment3', {
+            bank: bank,
+            car: cars,
+            totalPrice: totalPrice,
+            startDate: startDate,
+            endDate: endDate,
+            isDriver: isDriver,
+          });
+        }, 1000);
+      } else if (order.status === 'failed') {
+        setErrorMessage(order.message);
+        setModalVisible(true);
+        setTimeout(() => {
+          if (order.message === 'jwt expired') {
+            setErrorMessage(order.message);
+            setModalVisible(true);
+            dispatch(logout());
+            dispatch(resetCar())
+            dispatch(resetOrder())
+            setTimeout(() => {
+              navigation.navigate('SignIn')
+              setModalVisible(false);
+            }, 1000);
+          }
+          setModalVisible(false);
+        }, 1000);
+      }
+      else { }
+    }, [order]),
+  );
+
   const steps = [
     {id: 1, title: 'Pilih Metode'},
     {id: 2, title: 'Bayar'},
@@ -166,9 +225,9 @@ const Payment1 = ({route}) => {
       <ScrollView style={styles.content}>
         {/* Car Details */}
         <View style={styles.carDetails}>
-          <Image source={{uri: car.img}} style={styles.carImage} />
+          <Image source={{uri: cars.img}} style={styles.carImage} />
           <View style={styles.carInfo}>
-            <Text style={styles.carName}>{car.name}</Text>
+            <Text style={styles.carName}>{cars.name}</Text>
             <View style={styles.carMetrics}>
               <View style={styles.metric}>
                 <Icon name="users" size={16} color="#6b7280" />
@@ -180,26 +239,11 @@ const Payment1 = ({route}) => {
               </View>
             </View>
           </View>
-          <Text style={styles.price}>{formatIDR(car.price)}</Text>
+          <Text style={styles.price}>{formatIDR(cars.price)}</Text>
         </View>
-
-        {/* Driver Option */}
-        <View style={styles.driverSelection}>
-          <Text style={styles.sectionTitle}>Pilih Pengemudi</Text>
-          <Picker
-            selectedValue={driverOption}
-            style={styles.picker}
-            onValueChange={itemValue => {
-              setDriverOption(itemValue);
-              setIsDriver(itemValue === 'withDriver');
-            }}>
-            <Picker.Item label="Dengan Pengemudi" value="withDriver" />
-            <Picker.Item label="Tanpa Pengemudi" value="withoutDriver" />
-          </Picker>
-        </View>
-
         <View style={styles.datePickerContainer}>
           <Text style={styles.sectionTitle}>Select Dates</Text>
+
           {/* Start Date Picker */}
           <TouchableOpacity
             style={styles.dateField}
@@ -235,6 +279,29 @@ const Payment1 = ({route}) => {
               onChange={handleEndDateChange}
             />
           )}
+        </View>
+
+        <View style={styles.driverSelection}>
+          <Text style={styles.sectionTitle}>Pilih Pengemudi</Text>
+
+          {/* Custom Picker with Icon and Border */}
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={isDriver}
+              onValueChange={itemValue => setIsDriver(itemValue)}
+              style={styles.picker}>
+              <Picker.Item label="Tanpa Pengemudi" value={false} />
+              <Picker.Item label="Dengan Pengemudi" value={true} />
+            </Picker>
+
+            {/* Arrow Icon for Dropdown */}
+            <Icon
+              name="chevron-down"
+              size={20}
+              color="#6b7280"
+              style={styles.pickerIcon}
+            />
+          </View>
         </View>
 
         {/* Payment Method */}
@@ -284,6 +351,32 @@ const Payment1 = ({route}) => {
             </TouchableOpacity>
           </View>
         </View>
+        <ModalPopup visible={modalVisibile}>
+          <View style={styles.modalBackground}>
+            {errorMessage !== null ? (
+              <>
+                <Icon size={13} name={'x-circle'} />
+                {Array.isArray(errorMessage) ? (
+                  errorMessage.map(e => {
+                    return <Text>{e.message}</Text>;
+                  })
+                ) : (
+                  <Text> {errorMessage} </Text>
+                )}
+              </>
+            ) : updated ? (
+              <>
+                <Icon size={32} name={'check-circle'} />
+                <Text>Order Updated</Text>
+              </>
+            ) : (
+              <>
+                <Icon size={32} name={'check-circle'} />
+                <Text>Order Created</Text>
+              </>
+            )}
+          </View>
+        </ModalPopup>
       </ScrollView>
 
       {/* Bottom Section */}
@@ -320,7 +413,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',
-    marginBottom: 8,
   },
   dateLabel: {
     fontSize: 16,
@@ -334,12 +426,31 @@ const styles = StyleSheet.create({
     padding: 16,
     borderTopWidth: 1,
     borderTopColor: '#e5e7eb',
-    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  pickerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e5e7eb', // Border color for the Picker
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    justifyContent: 'space-between',
   },
   picker: {
-    height: 50,
-    width: '100%',
+    flex: 1,
+    fontSize: 16,
+    color: '#4a4a4a',
   },
+  pickerIcon: {
+    marginLeft: 8, // Adds space between the picker and the icon
+  },
+
   container: {
     flex: 1,
     backgroundColor: '#fff',
@@ -405,7 +516,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   carImage: {
-    width: 80,
+    width: 60,
     height: '100%',
     borderRadius: 4,
   },
@@ -434,36 +545,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#22c55e',
-  },
-  driverSelection: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-    marginBottom: 16,
-  },
-  driverOptions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  driverOption: {
-    padding: 12,
-    backgroundColor: '#f9fafb',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    width: '48%',
-    alignItems: 'center',
-  },
-  driverOptionSelected: {
-    backgroundColor: '#22c55e',
-  },
-  driverOptionText: {
-    fontSize: 14,
-    color: '#6b7280',
-  },
-  picker: {
-    height: 50,
-    width: '100%',
   },
   section: {
     padding: 16,
@@ -528,7 +609,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   promoButton: {
-    backgroundColor: '#22c55e',
+    backgroundColor: '#3D7B3F',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 8,

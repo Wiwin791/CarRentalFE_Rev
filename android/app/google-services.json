@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "488469958887",
+    "project_id": "carrental-ed131",
+    "storage_bucket": "carrental-ed131.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:488469958887:android:b7dfd06d5fa2412bcbd242",
+        "android_client_info": {
+          "package_name": "com.wiwin.carrental"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "488469958887-k8br6696rn7jegu6n72vhckkk85bkjgh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.wiwin.carrental",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "488469958887-81616kjpft11c95gk8qg1s396husj8p9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA1D9ChQPPs_DvjumDkRumVjLRJHZ2gVsU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "488469958887-81616kjpft11c95gk8qg1s396husj8p9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

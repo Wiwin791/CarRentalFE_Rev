@@ -1,4 +1,4 @@
-package com.carrental
+package com.wiwin.carrental
 
 import android.app.Application
 import com.facebook.react.PackageList

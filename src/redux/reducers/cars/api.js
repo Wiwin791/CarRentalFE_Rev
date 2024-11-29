@@ -1,38 +1,60 @@
-import { createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
+import {createAsyncThunk} from '@reduxjs/toolkit';
+import { apiClient } from "../../../config/axios";
 
 export const getCars = createAsyncThunk(
-    'user/getCars',
-    async (token, { rejectWithValue }) => {
-        try {
-            const res = await axios('http://172.17.32.206:3000/api/v1/cars', {
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-          
-            return data = res.data;
-        } catch (e) {
-            if(e.response.data){
-                return rejectWithValue(e.response.data.message);
-            }else{
-                return rejectWithValue('Something went wrong');
-            }
-        }
-    }
-)
+  'user/getCars',
+  async ( token, {rejectWithValue}) => {
+    try {
+      const response = await axios.get(
+        'http://192.168.1.24:3000/api/v1/cars',
+        {
+          headers: {
+            Content: 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
 
-export const getCarsDetails = createAsyncThunk(
-    'user/getCarsDetails',
-    async (id, { rejectWithValue }) => {
-        try {
-            const res = await axios.get(`http://172.17.32.206:3000/api/v1/cars/getId/${id}`);
-            return data = res.data
-          
-            
-        } catch (e) {
-            return rejectWithValue(e);
-        }
+      //Untuk async storage ( menyimpan data )
+      const data = response.data;
+      return data;
+    } catch (error) {
+      if (error.response.data) {
+        return rejectWithValue(error.response.data.message);
+      } else {
+        return rejectWithValue('Somethink when wrong');
+      }
     }
+  },
+);
+
+export const getCarsDetail = createAsyncThunk(
+  'user/getCarsDetail',
+  async ({id,token},{rejectWithValue}) => {
+    try {
+      const response = await apiClient.get(
+        `/cars/${id}`,
+        {
+        //   params:{
+        //     page: page,
+        // },
+          headers: {
+            Content: 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      //Untuk async storage ( menyimpan data )
+      const data = response.data;
+      return data;
+    } catch (error) {
+      if (error.response.data) {
+        return rejectWithValue(error.response.data.message);
+      } else {
+        return rejectWithValue('Somethink when wrong');
+      }
+    }
+  },
 );

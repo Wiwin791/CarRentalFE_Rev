@@ -1,46 +1,226 @@
-import React from 'react';
-import {useSelector} from 'react-redux';
-import {View, Text, FlatList, StyleSheet} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {
+  View,
+  FlatList,
+  StyleSheet,
+  SafeAreaView,
+  useColorScheme,
+  Text,
+  ActivityIndicator,
+} from 'react-native';
+import Button from '../../components/Button';
+import OrderList from '../../components/OrderList';
+import FocusAwareStatusBar from '../../components/FocusAwareStatusBar';
+import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
+import {selectUser, logout} from '../../redux/reducers/user';
+import {
+  getMyOrder,
+  getOrderDetail,
+  selectOrder,
+  cancelOrder,
+} from '../../redux/reducers/order';
+import {useSelector, useDispatch} from 'react-redux';
+import {clearTime} from '../../redux/reducers/timer';
+import ModalPopup from '../../components/Modal';
+import Icon from 'react-native-vector-icons/Feather';
+import {resetCar} from '../../redux/reducers/cars';
+import {apiClient} from '../../config/axios';
 
-const OrderList = () => {
-  const orderList = useSelector((state) => state.order.orderList);
+const Colors = {
+  primary: '#A43333',
+  secondary: '#SCB85F',
+  darker: '#121212',
+  lighter: '#ffffff',
+  button: '#5CB85F',
+};
+
+
+const ListOrder = () => {
+  const isDarkMode = useColorScheme() === 'dark';
+  const backgroundStyle = {
+    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+  };
+  const navigation = useNavigation();
+  // const [order, setOrder] = useState('');
+  const dispatch = useDispatch();
+  const user = useSelector(selectUser);
+  const order = useSelector(selectOrder);
+  const [modalVisibile, setModalVisible] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
+
+  const calculateTotalDays = (start, end) => {
+    const startTime = new Date(start).getTime();
+    const endTime = new Date(end).getTime();
+    return Math.round((endTime - startTime) / (1000 * 60 * 60 * 24));
+  };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (user.login) {
+        dispatch(getMyOrder(user.token));
+        dispatch(clearTime());
+      }
+    }, [user.token]),
+  );
+  useFocusEffect(
+    React.useCallback(() => {
+      if (order.status === 'success') {
+        navigation.navigate('Payment3');
+      }
+    }, [order]),
+  );
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (order.status === 'failed') {
+        dispatch(logout());
+        dispatch(resetCar());
+        setModalVisible(true);
+        setErrorMessage(order.message);
+        setTimeout(() => {
+          navigation.navigate('SignIn');
+          setModalVisible(false);
+        }, 1000);
+      }
+    }, [order]),
+  );
+
+  const CancelOrder = async id => {
+    console.log('text');
+    try {
+      const cancel = await axios.put(
+        `http://192.168.1.24:3000/api/v1/order/${id}/cancelOrder`, {
+        headers: {
+          Content: 'application/json',
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
+      dispatch(getMyOrder(user.token));
+    } catch (e) {
+      console.log(e);
+    }
+  };
 
   return (
-    <View style={styles.container}>
-      <FlatList
-        data={orderList}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({item}) => (
-          <View style={styles.orderItem}>
-            <Text style={styles.carName}>{item.car.name}</Text>
-            <Text>{item.totalPrice}</Text>
-            <Text>{item.startDate.toDateString()} - {item.endDate.toDateString()}</Text>
-          </View>
-        )}
+    <SafeAreaView style={backgroundStyle}>
+      <FocusAwareStatusBar
+        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+        backgroundColor={Colors.lighter}
       />
-    </View>
+      <ModalPopup visible={order.status === 'loading'}>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}>
+          <ActivityIndicator />
+        </View>
+      </ModalPopup>
+
+      <ModalPopup visible={modalVisibile}>
+        <View style={styles.modalBackground}>
+          <>
+            <Icon size={13} name={'x-circle'} />
+            <Text> {errorMessage} </Text>
+          </>
+        </View>
+      </ModalPopup>
+
+      {!user.login ? (
+        <View style={styles.detailsContainer}>
+          <View style={styles.cardContainer}>
+            <Text style={styles.messageRegister}>
+              Login Atau Daftar Untuk Booking Mobil !
+            </Text>
+            <Button
+              onPress={() => navigation.navigate('SignUp')}
+              style={styles.ButtonContainer}
+              color="#3D7B3F"
+              title="Booking Sekarang"
+            />
+          </View>
+        </View>
+      ) : (
+        <FlatList
+          data={order.data?.resources}
+          renderItem={({item}) => {
+            const time = new Date(item.overdue_time);
+            const totalDays = calculateTotalDays(
+              item.start_time,
+              item.end_time,
+            );
+
+            const isDisabled =
+              item.status === 'canceled' || item.status === 'paid';
+
+            return (
+              <OrderList
+                key={item.toString()}
+                image={{uri: item.cars.img}}
+                invoice={item.order_no}
+                carName={item.cars.name}
+                status={`Status : ${item.status}`}
+                startDate={`Tanggal Sewa : ${new Date(
+                  item.start_time,
+                ).toLocaleDateString('id-ID')}`}
+                endDate={`waktu sewa : ${totalDays} Hari`} // total sewa hari
+                price={item?.total}
+                overdue={time.getTime()}
+                CancelOrder={() => CancelOrder(item.id)}
+                onPress={() =>
+                  !isDisabled &&
+                  dispatch(getOrderDetail({id: item.id, token: user.token}))
+                }
+                disabled={isDisabled} // Disable button if canceled
+              />
+            );
+          }}
+          keyExtractor={item => item.id}
+        />
+      )}
+       <ModalPopup visible={modalVisibile}>
+        <View style={styles.modalBackground}>
+          <>
+            <Icon size={13} name={'x-circle'} />
+            <Text> {errorMessage} </Text>
+          </>
+        </View>
+      </ModalPopup>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
+  modalBackground: {
+    width: '90%',
+    backgroundColor: '#fff',
+    elevation: 20,
+    borderRadius: 4,
+    padding: 20,
   },
-  title: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 16,
+
+  messageRegister: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#000',
+    textAlign: 'center',
+    marginTop: '10%',
+    padding: 30,
   },
-  orderItem: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+
+  ButtonContainer: {
+    width: '70%',
+    alignSelf: 'center',
   },
-  carName: {
-    fontSize: 16,
-    fontWeight: '600',
+
+  cardContainer: {
+    marginVertical: '70%',
+    alignItems: 'center',
+  },
+  detailsContainer: {
+    width: '100%',
   },
 });
-
-export default OrderList;
+export default ListOrder;

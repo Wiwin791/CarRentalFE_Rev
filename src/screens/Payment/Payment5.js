@@ -1,153 +1,157 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Image,
-  StyleSheet,
-  SafeAreaView,
-} from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
-import CountDown from 'react-native-countdown-component-maintained';
-import Icon from 'react-native-vector-icons/Feather';
-import { useNavigation } from '@react-navigation/native';
+import { selectOrder, payment } from '../../redux/reducers/order';
+import { selectUser } from '../../redux/reducers/user';
+import { useDispatch, useSelector } from 'react-redux';
+import { useFocusEffect , useNavigation} from '@react-navigation/native';
 
-export default function Payment5() {
-  const [timeLeft, setTimeLeft] = useState(600);  // 10 minutes in seconds (600 seconds)
-  const [selectedImage, setSelectedImage] = useState(null);
+
+export default function PaymentConfirmation() {
+  const [timeLeft, setTimeLeft] = useState(595); // 9 minutes and 55 seconds
+  const [image, setImage] = useState(null);
+  const user = useSelector(selectUser);
+  const order = useSelector(selectOrder);
+  const dispatch = useDispatch();
   const navigation = useNavigation();
 
-  // Function to pick an image
-  const pickImage = () => {
-    launchImageLibrary(
-      { mediaType: 'photo', quality: 1, includeBase64: false },
-      (response) => {
-        if (response.didCancel) {
-          console.log('User cancelled image picker');
-        } else if (response.errorCode) {
-          console.log('ImagePicker Error: ', response.errorMessage);
-        } else {
-          setSelectedImage(response.assets[0].uri); // Save the selected image
-        }
-      }
-    );
-  };
-
-  const handleTimeChange = (time) => {
-    setTimeLeft(time); 
-  };
-
-const handleNextPayment = () => {
-
-    navigation.navigate('Payment4', {
-      // bank: bank,
-      // car : car,
-      // totalPrice: totalPrice,
-      // startDate: startDate,
-      // endDate: endDate,
-    })
-  };
-
-
   useEffect(() => {
-    if (timeLeft <= 0) {
-      alert('Finished');
+    if (timeLeft > 0) {
+      const timer = setInterval(() => {
+        setTimeLeft(prev => prev - 1);
+      }, 1000);
+      return () => clearInterval(timer);
     }
   }, [timeLeft]);
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.card}>
-        <Text style={styles.title}>Konfirmasi Pembayaran</Text>
-        
-        <Text style={styles.message}>
-          Terima kasih telah melakukan konfirmasi pembayaran. Pembayaranmu akan segera 
-          kami cek tunggu kurang lebih 10 menit untuk mendapatkan konfirmasi.
-        </Text>
-        
-        <Text style={styles.timer}>
-          <CountDown 
-            until={timeLeft} // Time remaining in state
-            onFinish={() => alert('Finished')}  // Show alert when countdown finishes
-            onChange={handleTimeChange} // Update timeLeft on every tick
-            size={10.5}
-            digitStyle={{ backgroundColor: '#FA2C5A' }}
-            digitTxtStyle={{ color: 'white', fontSize: 18 }}
-            timeLabelStyle={{ color: 'red', fontWeight: 'bold' }}
-            separatorStyle={{ color: 'black' }}
-            timeToShow={['M', 'S']}
-            timeLabels={{ m: null, s: null }}
-            showSeparator
-          />
-        </Text>
+  const formatTime = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+  };
 
+  const pickImage = () => {
+    const options = {
+      mediaType: 'photo',
+      includeBase64: true,
+      
+    };
+
+    launchImageLibrary(options, (response) => {
+
+      const selectedImage = response.assets[0];
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.error) {
+        console.log('ImagePicker Error: ', response.error);
+      }   
+      const imageData = `data:${selectedImage.type};base64,${selectedImage.base64}`;
+      setImage(imageData);
+
+    });
+  };
+
+  const handlePayment = () => {
+    if (image) {
+      dispatch(payment({
+        id: order.data?.id,
+        receipt: image,
+        token: user.token
+      }));
+    }
+
+    
+  }
+useFocusEffect(
+  useCallback(() => {
+    if(order.status === 'success'){
+      navigation.navigate('TicketScreen');
+    }
+  }, [order.status])
+)
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Konfirmasi Pembayaran</Text>
+
+      <View style={styles.messageContainer}>
+        <Text style={styles.message}>
+          Terima kasih telah melakukan konfirmasi pembayaran. Pembayaranmu akan segera kami cek tunggu kurang lebih 10 menit untuk mendapatkan konfirmasi.
+        </Text>
+        <Text style={styles.timer}>{formatTime(timeLeft)}</Text>
+      </View>
+
+      <View style={styles.uploadSection}>
         <Text style={styles.uploadTitle}>Upload Bukti Pembayaran</Text>
         <Text style={styles.uploadSubtitle}>
-          Untuk membantu kami lebih cepat melakukan pengecekan, Kamu bisa upload 
-          bukti bayarmu
+          Untuk membantu kami lebih cepat melakukan pengecekan, Kamu bisa upload bukti bayarmu
         </Text>
 
-        <TouchableOpacity style={styles.imageContainer} onPress={pickImage}>
-          {selectedImage ? (
-            <Image source={{ uri: selectedImage }} style={styles.image} />
+        <TouchableOpacity onPress={pickImage} style={styles.imagePickerContainer}>
+          {image ? (
+            <Image source={{ uri: image }} style={styles.selectedImage} />
           ) : (
-            <Icon name="image" style={styles.placeholderImage} size={48} color="black" />
+            <View style={styles.placeholderContainer}>
+              <Image
+                // source={require('./assets/placeholder-icon.png')}
+                style={styles.placeholderIcon}
+              />
+              <Text>Pick an image</Text>
+            </View>
           )}
         </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.uploadButton} onPress={handleNextPayment}>
-          <Text style={styles.uploadButtonText }>Upload</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.orderListButton}>
-          <Text style={styles.orderListButtonText}>Lihat Daftar Pesanan</Text>
-        </TouchableOpacity>
       </View>
-    </SafeAreaView>
+
+      <TouchableOpacity
+        onPress={handlePayment}
+        style={[
+          styles.uploadButton,
+          !image && styles.uploadButtonDisabled,
+        ]}
+        disabled={!image} 
+      >
+        <Text style={styles.uploadButtonText} onPress={() => navigation.navigate('TicketScreen')}>Upload</Text>
+      </TouchableOpacity>
+
+
+      <TouchableOpacity style={styles.viewOrderButton} onPress={() => navigation.navigate('HomeTabs', {screen : 'ListOrder'})}>
+        <Text style={styles.viewOrderText}>Lihat Daftar Pesanan</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
-    padding: 16,
-  },
-  card: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    padding: 20,
+    backgroundColor: '#fff',
   },
   title: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
+  },
+  messageContainer: {
+    marginBottom: 24,
   },
   message: {
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
     marginBottom: 12,
-    lineHeight: 20,
-    fontWeight: 'bold',
+    lineHeight: 24,
   },
   timer: {
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
+    color: '#FF0000',
+  },
+  uploadSection: {
     marginBottom: 24,
-    color: '#ff0066',
   },
   uploadTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
     marginBottom: 8,
   },
@@ -155,51 +159,58 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     marginBottom: 16,
-    fontWeight: 'bold',
   },
-  imageContainer: {
+  uploadButtonDisabled: {
+    backgroundColor: '#cccccc',  
+    borderColor: '#999999',
+  },
+
+  imagePickerContainer: {
     width: '100%',
     height: 200,
-    backgroundColor: '#f8f8f8',
     borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
     borderWidth: 1,
     borderColor: '#ddd',
     borderStyle: 'dashed',
+    overflow: 'hidden',
   },
-  image: {
+  selectedImage: {
     width: '100%',
     height: '100%',
-    borderRadius: 8,
+    resizeMode: 'cover',
   },
-  placeholderImage: {
-    width: 48,
-    height: 48,
-    tintColor: '#ccc',
+  placeholderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+  },
+  placeholderIcon: {
+    width: 24,
+    height: 24,
+    opacity: 0.5,
   },
   uploadButton: {
-    backgroundColor: '#3D7B3F',
+    backgroundColor: '#4CAF50',
     padding: 16,
     borderRadius: 8,
-    alignItems: 'center',
     marginBottom: 12,
   },
   uploadButtonText: {
-    color: 'white',
+    color: '#fff',
+    textAlign: 'center',
     fontSize: 16,
     fontWeight: '600',
   },
-  orderListButton: {
+  viewOrderButton: {
     padding: 16,
     borderRadius: 8,
-    alignItems: 'center',
     borderWidth: 1,
     borderColor: '#4CAF50',
   },
-  orderListButtonText: {
+  viewOrderText: {
     color: '#4CAF50',
+    textAlign: 'center',
     fontSize: 16,
     fontWeight: '600',
   },

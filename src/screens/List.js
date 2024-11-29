@@ -1,75 +1,94 @@
-import { useDispatch, useSelector } from 'react-redux';
-import { selectUser } from '../redux/reducers/user';
-import { useCallback } from 'react';
+import React from 'react';
 import {
-    FlatList,
-    SafeAreaView,
-    Text,
-    useColorScheme,
-    View,
+  View,
+  FlatList,
+  StyleSheet,
+  SafeAreaView,
+  useColorScheme,
+  ActivityIndicator
 } from 'react-native';
-import FocusAwareStatusBar from '../components/FocusAwareStatusBar';
+
 import CarList from '../components/CarList';
-import Button from '../components/Button';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { getCars, selectCars } from '../redux/reducers/cars';
+import FocusAwareStatusBar from '../components/FocusAwareStatusBar';
+import { useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import ModalPopup from '../components/Modal';
 
-function List() {
-    const dispatch = useDispatch();
-    const isDarkMode = useColorScheme() === 'dark';
-    const user = useSelector(selectUser);
-    const car = useSelector(selectCars);
-    const navigation = useNavigation();
+import { useSelector } from 'react-redux';
+import { selectCars } from '../redux/reducers/cars';
+import { selectUser } from '../redux/reducers/user';
 
-    const COLORS = {
-        primary: '#A43333',
-        secondary: '#5CB85F',
-        darker: '#121212',
-        lighter: '#ffffff'
-    }
+const Colors = {
+  primary: '#A43333',
+  secondary: '#SCB85F',
+  darker: '#121212',
+  lighter: '#ffffff',
+  button: '#5CB85F',
+};
 
-    useFocusEffect(
-        useCallback(() => {
-            if (user.token) {
-                dispatch(getCars(user.token))
-                console.log(car.data)
+const List = () => {
+  const isDarkMode = useColorScheme() === 'dark';
+  const backgroundStyle = {
+    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+  };
+
+  const navigation = useNavigation();
+  const car = useSelector(selectCars);
+  const user = useSelector(selectUser);
+
+  useFocusEffect (
+    React.useCallback(()=> {
+      if (user.status === 'failed') {
+        setModalVisible(true);
+       setErrorMessage(car.message)
+        setTimeout(() => {
+          setModalVisible(false);
+        }, 1000)
+      }
+    },[car])
+  )
+
+  return (
+    <SafeAreaView style={backgroundStyle}>
+      <FocusAwareStatusBar
+        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+        backgroundColor={Colors.primary}
+      />
+
+<ModalPopup visible={car.status === 'loading'}>
+          <View style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}>
+            <ActivityIndicator />
+          </View>
+        </ModalPopup>
+
+      <FlatList
+        data={car.data}
+        renderItem={({ item }) => (
+          <CarList
+            key={item.toString()}
+            image={{ uri: item.img }}
+            carName={item.name}
+            passengers={5}
+            baggage={4}
+            price={item.price}
+            onPress={() =>
+              navigation.navigate('Detail', {
+                carId: item.id,
+                carName: item.name,
+              })
             }
-        }, [user, dispatch]))
+          />
+        )}
+        keyExtractor={item => item.id}
+      />
+    </SafeAreaView>
+  );
+};
 
-    const handleLogin = () => {
-        dispatch(login());  // Disptach action login
-    };
-
-    return (
-        <SafeAreaView style={{ backgroundColor: isDarkMode ? '#121212' : '#ffffff' }}>
-            <FocusAwareStatusBar
-                barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-                backgroundColor={COLORS.lighter}
-            />
-            {!user.isLogin ? (
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                    <Text style={{ fontSize: 24, marginBottom: 20 }}>Silahkan Login untuk Melihat Daftar Mobil</Text>
-                    <Button title="Login" onPress={handleLogin} />
-                </View>
-            ) : (
-                <FlatList
-                    data={car.data}
-                    renderItem={({ item, index }) => (
-                        <CarList
-                            key={item.id}
-                            image={{ uri: item.img }}
-                            carName={item.name}
-                            passengers={5}
-                            baggage={4}
-                            price={item.price}
-                            onPress={() => navigation.navigate('Detail', { id: item.id })}
-                        />
-                    )}
-                    keyExtractor={item => item.id}
-                />
-            )}
-        </SafeAreaView>
-    );
-}
+const styles = StyleSheet.create({});
 
 export default List;

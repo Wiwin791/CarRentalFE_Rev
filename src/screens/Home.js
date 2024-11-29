@@ -1,11 +1,4 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
-import { useCallback } from 'react';
+import React, {useState} from 'react';
 import {
   FlatList,
   Image,
@@ -14,53 +7,84 @@ import {
   Text,
   useColorScheme,
   View,
+  ActivityIndicator
 } from 'react-native';
-
+import {useFocusEffect} from '@react-navigation/native';
 import Button from '../components/Button';
 import Icon from 'react-native-vector-icons/Feather';
 import CarList from '../components/CarList';
+import ModalPopup from '../components/Modal';
 import FocusAwareStatusBar from '../components/FocusAwareStatusBar';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { useSelector, useDispatch } from 'react-redux';
-import { selectUser,resetState } from '../redux/reducers/user';
-import { getCars, selectCars } from '../redux/reducers/cars';
+import {useNavigation} from '@react-navigation/native';
+import { useSelector,useDispatch } from 'react-redux';
+import { selectCars,resetCar, getCars } from '../redux/reducers/cars';
+import { selectUser,logout } from '../redux/reducers/user';
+import { resetOrder } from '../redux/reducers/order';
+import GeoLoc from '../components/Geolocation';
+
 
 const COLORS = {
   primary: '#A43333',
   secondary: '#5CB85F',
   darker: '#121212',
-  lighter: '#ffffff'
-}
+  lighter: '#ffffff',
+};
 
-const ButtonIcon = ({ icon, title }) => (
+const ButtonIcon = ({icon, title}) => (
   <Button>
     <View style={styles.iconWrapper}>
       <Icon name={icon} size={25} color="#fff" />
     </View>
     <Text style={styles.iconText}>{title}</Text>
   </Button>
-)
+);
 
 function Home() {
-  const navigation = useNavigation();
-  const dispatch = useDispatch();
-  const user = useSelector(selectUser);
-  const car = useSelector(selectCars);
+  const cars = useSelector(selectCars)
   const isDarkMode = useColorScheme() === 'dark';
+  const [modalVisibile, setModalVisible] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const user = useSelector(selectUser)
+  const navigation = useNavigation();
+  const dispatch = useDispatch()
+  
 
 
-  useFocusEffect(
-    useCallback(() => {
-        if (user.token) {
-            dispatch(getCars(user.token))
-            console.log(car.data)
-        }
-    }, [user, dispatch]))
+// const fetchCars = () => {
+//   const page = 1;
+//   if(!cars.data?.length || page > cars.data?.page && cars.status === 'idle'){
+//     dispatch(getCars({page: page , token : user.token}))
+//   }
+// }
+  useFocusEffect((
+    React.useCallback(() => {
+      // console.log(cars.message?.page)
+      //  fetchCars()
+      console.log(user);
+      
+      dispatch(getCars(user.token))
+        dispatch(resetOrder())
+    }, [user.token])
+  ))
 
-    const handleNav = () => {
-      navigation.navigate('SignIn')
-      dispatch(resetState())
-    }
+  useFocusEffect (
+    React.useCallback(()=> {
+      if (cars.status === 'failed') {
+        dispatch(logout())
+        dispatch(resetCar())
+      setModalVisible(true);
+       setErrorMessage(cars?.message)
+        setTimeout(() => {
+          navigation.navigate('SignIn')
+          setModalVisible(false);
+        }, 1000)
+      }
+    },[cars])
+  )
+
+  
+  const headerName = user.data?.fullname || 'Hai, Nama'
+  // console.log('data',user)
 
   const backgroundStyle = {
     // overflow: 'visible',
@@ -68,39 +92,64 @@ function Home() {
   };
 
   return (
+    
     <SafeAreaView style={backgroundStyle}>
       <FocusAwareStatusBar
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
         backgroundColor={COLORS.primary}
       />
+        <ModalPopup visible={cars.status === 'loading'}>
+          <View style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}>
+            <ActivityIndicator />
+          </View>
+        </ModalPopup>
       {/* end banner */}
       <FlatList
+        data={cars.data}
         ListHeaderComponent={
           <>
             <View style={styles.header}>
               <View style={styles.headerContainer}>
                 <View>
-                  <Text style={styles.headerText}>Hi, {user ? user.fullname : 'Guest'}</Text>
-                  <Text style={styles.headerTextLocation}>Your Location</Text>
+                  <Text style={styles.headerText}>
+                    Hi,
+                    {headerName}
+                  </Text>
+                  <Text style={styles.headerTextLocation}>
+                    <GeoLoc/>
+                  </Text>
                 </View>
-                <View >
-                  <Image style={styles.imageRounded} source={{ uri: "https://i.pravatar.cc/100" }} width={50} height={50} />
+                <View>
+                  <Image
+                    style={styles.imageRounded}
+                    source={{uri: 'https://i.pravatar.cc/100'}}
+                    width={50}
+                    height={50}
+                  />
                 </View>
               </View>
               {/* banner */}
-              <View style={{
-                ...styles.headerContainer,
-                ...styles.bannerContainer
-              }}>
+              <View
+                style={{
+                  ...styles.headerContainer,
+                  ...styles.bannerContainer,
+                }}>
                 <View style={styles.bannerDesc}>
-                  <Text style={styles.bannerText}>Sewa Mobil Berkualitas di kawasanmu</Text>
-                  <Button
-                    color={COLORS.secondary}
-                    title='Sewa Mobil'
-                  />
+                  <Text style={styles.bannerText}>
+                    Sewa Mobil Berkualitas di kawasanmu
+                  </Text>
+                  <Button color={COLORS.secondary} title="Sewa Mobil" />
                 </View>
                 <View style={styles.bannerImage}>
-                  <Image source={require('../assets/images/img_car.png')} width={50} height={50} />
+                  <Image
+                    source={require('../assets/images/img_car.png')}
+                    width={50}
+                    height={50}
+                  />
                 </View>
               </View>
             </View>
@@ -112,39 +161,30 @@ function Home() {
             </View>
           </>
         }
-       // Display car list only if the user is logged in
-       data={user.token && car.data ? car.data : []} // Only show cars if the user is logged in
-       ListEmptyComponent={
-        !user.token ? (
-          <View style={styles.emptyStateContainer}>
-            <Icon name="log-in" style={styles.iconStyle} size={52} color="#ccc" />
-            <Text style={styles.emptyStateText}>
-              Silahkan Login untuk Melihat Daftar Mobil
-              
-            </Text>
-            <View style={styles.loginButtonContainer}>
-              <Button title="Login" onPress={handleNav} />
-            </View>
-          </View>
-        ) : (
-          <Text style={styles.noCarsText}>
-            Tidak ada mobil yang tersedia
-          </Text>
-        )
-      }
-      renderItem={({ item }) => (
-        <CarList
-          key={item.id}
-          image={{ uri: item.img }}
-          carName={item.name}
-          passengers={5}
-          baggage={4}
-          price={item.price}
-          onPress={() => navigation.navigate('Detail', { id: item.id })}
-        />
-      )}
+        renderItem={({item, index}) => (
+          <CarList
+            key={item.toString()}
+            image={{uri: item.img}}
+            carName={item.name}
+            passengers={5}
+            baggage={4}
+            price={item.price}
+            // onEndReached={fetchCars}
+            // onEndReachedThreshold={0.8}
+            onPress={() => navigation.navigate('Detail', {carId: item.id} )}
+          />
+        )}
+       
         keyExtractor={item => item.id}
       />
+       <ModalPopup visible={modalVisibile}>
+        <View style={styles.modalBackground}>
+            <>
+              <Icon size={13} name={'x-circle'} />
+                <Text> {errorMessage} </Text>
+             </>
+        </View>
+      </ModalPopup>
     </SafeAreaView>
   );
 }
@@ -159,7 +199,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between', // posisi horizontal
     alignItems: 'center', // posisi
-    padding: 10
+    padding: 10,
   },
   imageRounded: {
     borderRadius: 40,
@@ -167,12 +207,12 @@ const styles = StyleSheet.create({
   headerText: {
     color: COLORS.lighter,
     fontWeight: 700,
-    fontSize: 12
+    fontSize: 12,
   },
   headerTextLocation: {
     color: COLORS.lighter,
     fontWeight: 700,
-    fontSize: 14
+    fontSize: 14,
   },
   bannerContainer: {
     borderRadius: 4,
@@ -180,7 +220,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#AF392F',
     marginHorizontal: 10,
     flexWrap: 'wrap',
-    marginBottom: -200
+    marginBottom: -200,
   },
   bannerText: {
     fontSize: 16,
@@ -189,18 +229,18 @@ const styles = StyleSheet.create({
   },
   bannerDesc: {
     paddingHorizontal: 10,
-    width: '40%'
+    width: '40%',
   },
   iconContainer: {
     marginTop: 75,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    flexWrap: 'wrap'
+    flexWrap: 'wrap',
   },
   iconWrapper: {
     backgroundColor: COLORS.primary,
     borderRadius: 5,
-    padding: 15
+    padding: 15,
   },
   iconText: {
     color: '#fff',
@@ -208,48 +248,14 @@ const styles = StyleSheet.create({
     fontWeight: 700,
     minWidth: 65,
     marginTop: 5,
-    textAlign: 'center'
-  },
-  emptyStateContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: COLORS.lighter,
-    paddingHorizontal: 20,
-    paddingVertical: 40,
-  },
-  emptyStateText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: COLORS.primary,
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  loginButtonContainer: {
-    backgroundColor: COLORS.secondary,
-    borderRadius: 5,
-    paddingHorizontal: 5,
-    paddingVertical: 1,
-  },
-  loginButtonText: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: 'bold',
     textAlign: 'center',
   },
-  iconStyle: {
-    marginBottom: 50,
-    marginTop: 50
-  },
-
-  // Styling untuk pesan "Tidak Ada Mobil"
-  noCarsText: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: COLORS.primary,
-    textAlign: 'center',
-    marginTop: 20,
-    paddingHorizontal: 30,
+  modalBackground : {
+    width : '90%',
+    backgroundColor : "#fff",
+    elevation : 20,
+    borderRadius : 4,
+    padding : 20,
   },
 });
 

@@ -1,50 +1,119 @@
-import { createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import axios from "axios";
+import { createAsyncThunk } from "@reduxjs/toolkit";
+import { apiClient } from "../../../config/axios";
 
 export const postLogin = createAsyncThunk(
     'user/postLogin',
-    async (payload, { rejectWithValue }) => {
-        console.log(payload)
+    async (payload, {rejectWithValue}) => {
+     
         try {
-            const res = await axios.post('http://172.17.32.206:3000/api/v1/auth/signin',
-                JSON.stringify(payload), {
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
+          const response = await axios.post(
+            'http://192.168.1.24:3000/api/v1/auth/signin',
+               payload ,{
+                headers : {
+                    'Content' : 'application/json' 
+                }
+              }
             );
-            const data = res.data;
-            console.log(data)
+
+            const data = response.data;
             return data;
-        } catch (e) {
-            console.log(e)
-            if(e.response.data){
-                return rejectWithValue(e.response.data.message);
-            }else{
-                return rejectWithValue('Something went wrong');
+          }  catch (error) {
+            
+            if (error.response.data) {
+              return rejectWithValue(error.response.data.message)
+             
+            }else {
+              return rejectWithValue("Somethink when wrong")
             }
-        }
+        
+        
+          }
+
     }
-);
+) 
+
+
+export const postRegister = createAsyncThunk(
+  'user/postRegister',
+  async (payload, {rejectWithValue}) => {
+   
+      try {
+        const response = await axios.post(
+          'http://192.168.1.24:3000/api/v1/auth/signup',
+             payload ,{
+              headers : {
+                  'Content' : 'application/json' 
+              }
+            }
+          );
+          const data = response.data;
+          return data;
+        }  catch (error) {
+          
+          if (error.response.data) {
+            return rejectWithValue(error.response.data.message)
+           
+          }else {
+            return rejectWithValue("Somethink went wrong")
+          }
+      
+      
+        }
+
+  }
+) 
+
 
 export const getProfile = createAsyncThunk(
     'user/getProfile',
-    async (token, { rejectWithValue }) => {
+    async (token,{rejectWithValue}) =>  {
+
         try {
-            const res = await axios('http://172.17.32.206:3000/api/v1/auth/whoami', {
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-            const data  = res.data;
-            return data;
-        } catch (e) {
-            if(e.response.data){
-                return rejectWithValue(e.response.data.message);
-            }else{
-                return rejectWithValue('Something went wrong');
-            }
+          const response = await axios.get(
+            'http://192.168.1.24:3000/api/v1/auth/whoami',
+               {
+                headers : {
+                    'Content' : 'application/json' ,
+                    Authorization : `Bearer ${token}`
+                }})
+
+                const {data} = response.data
+                return data;
+
+        } catch(error){
+    if(error.response.data) {
+        return rejectWithValue(error.response.data.message)
+
+    }
+    else {
+        return rejectWithValue('Something When Wrong')
+    }
         }
     }
+   
+)
+
+export const GoogleLogin = createAsyncThunk(
+    'user/googleLogin',
+    async (payload,{rejectWithValue}) =>  {
+
+        try {
+          const response = await axios.post(
+            'http://192.168.1.24:3000/api/v1/auth/googleSignIn',payload)
+
+                const data = response.data
+                return data;
+
+        } catch(error){
+    if(error.response.data) {
+        return rejectWithValue(error.response.data.message)
+
+    }
+    else {
+        return rejectWithValue('Something When Wrong')
+    }
+        }
+    }
+   
 )
