@@ -1,20 +1,35 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import {statusChange, selectOrder} from '../../redux/reducers/order';
+import { useDispatch, useSelector } from 'react-redux';
 
 export default function TicketScreen() {
-    const navigation = useNavigation();
+
+  const order = useSelector(selectOrder);
+  const navigation = useNavigation();
+  const dispatch = useDispatch();
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (order.status) dispatch(statusChange());
+    }, [order.status]),
+  );
+
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => {
+            navigation.goBack();
+          }}>
           <Feather name="arrow-left" size={24} color="#000" />
         </TouchableOpacity>
-        <View style={styles.headerText}>
-          <Text style={styles.title}>Tiket</Text>
-          <Text style={styles.orderId}>Order ID: xxxxxxxx</Text>
+        <View>
+          <Text
+            style={styles.headerTitle}>Tiket</Text>
+            <Text style={styles.orderId}>Order ID:</Text>
         </View>
       </View>
 
@@ -46,7 +61,7 @@ export default function TicketScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>Invoice</Text>
         <TouchableOpacity style={styles.downloadButton}>
-          <Text style={styles.invoiceText}>INV/xx/xx-xxxx/</Text>
+          <Text style={styles.invoiceText}>{order.data?.order_no}</Text>
           <Feather name="download" size={20} color="#000" />
         </TouchableOpacity>
       </View>
@@ -65,7 +80,7 @@ export default function TicketScreen() {
       </Text>
 
       {/* Bottom Button */}
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('HomeTabs')}>
+      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('HomeTabs', {screen: 'ListOrder'})}>
         <Text style={styles.buttonText} >Lihat Daftar Pesanan</Text>
       </TouchableOpacity>
     </View>
@@ -83,8 +98,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 24,
   },
-  headerText: {
-    marginLeft: 16,
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginLeft: 10
   },
   title: {
     fontSize: 18,
@@ -92,7 +109,8 @@ const styles = StyleSheet.create({
   },
   orderId: {
     fontSize: 14,
-    color: '#666',
+    color: '#6b7280',
+    marginLeft: 10
   },
   stepper: {
     flexDirection: 'row',

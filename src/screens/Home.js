@@ -30,14 +30,7 @@ const COLORS = {
   lighter: '#ffffff',
 };
 
-const ButtonIcon = ({icon, title}) => (
-  <Button>
-    <View style={styles.iconWrapper}>
-      <Icon name={icon} size={25} color="#fff" />
-    </View>
-    <Text style={styles.iconText}>{title}</Text>
-  </Button>
-);
+
 
 function Home() {
   const cars = useSelector(selectCars)
@@ -47,19 +40,20 @@ function Home() {
   const user = useSelector(selectUser)
   const navigation = useNavigation();
   const dispatch = useDispatch()
+
+  const ButtonIcon = ({icon, title, onPress}) => (
+    <Button onPress={onPress}>
+      <View style={styles.iconWrapper}>
+        <Icon name={icon} size={25} color="#fff" />
+      </View>
+      <Text style={[styles.iconText, {color: isDarkMode ? '#fff' : COLORS.darker}]}>
+        {title}
+      </Text>
+    </Button>
+  );
   
-
-
-// const fetchCars = () => {
-//   const page = 1;
-//   if(!cars.data?.length || page > cars.data?.page && cars.status === 'idle'){
-//     dispatch(getCars({page: page , token : user.token}))
-//   }
-// }
   useFocusEffect((
     React.useCallback(() => {
-      // console.log(cars.message?.page)
-      //  fetchCars()
       console.log(user);
       
       dispatch(getCars(user.token))
@@ -142,7 +136,7 @@ function Home() {
                   <Text style={styles.bannerText}>
                     Sewa Mobil Berkualitas di kawasanmu
                   </Text>
-                  <Button color={COLORS.secondary} title="Sewa Mobil" />
+                  <Button onPress={() => navigation.navigate('List')} color={COLORS.secondary} title="Sewa Mobil" />
                 </View>
                 <View style={styles.bannerImage}>
                   <Image
@@ -154,8 +148,8 @@ function Home() {
               </View>
             </View>
             <View style={styles.iconContainer}>
-              <ButtonIcon icon="truck" title="Sewa Mobil" />
-              <ButtonIcon icon="box" title="Oleh-Oleh" />
+              <ButtonIcon onPress={() => navigation.navigate('List')} icon="truck" title="Sewa Mobil" />
+              <ButtonIcon onPress={() => navigation.navigate('OlehOlehScreen')} icon="box" title="Oleh-Oleh" />
               <ButtonIcon icon="key" title="Penginapan" />
               <ButtonIcon icon="camera" title="Wisata" />
             </View>

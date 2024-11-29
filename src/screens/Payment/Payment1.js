@@ -134,7 +134,7 @@ const Payment1 = ({route}) => {
         setErrorMessage(null);
         setTimeout(() => {
           setModalVisible(false);
-          navigation.navigate('Payment3', {
+          navigation.navigate('Payment4', {
             bank: bank,
             car: cars,
             totalPrice: totalPrice,
@@ -293,14 +293,6 @@ const Payment1 = ({route}) => {
               <Picker.Item label="Tanpa Pengemudi" value={false} />
               <Picker.Item label="Dengan Pengemudi" value={true} />
             </Picker>
-
-            {/* Arrow Icon for Dropdown */}
-            <Icon
-              name="chevron-down"
-              size={20}
-              color="#6b7280"
-              style={styles.pickerIcon}
-            />
           </View>
         </View>
 
@@ -383,7 +375,6 @@ const Payment1 = ({route}) => {
       <View style={styles.bottomSection}>
         <View style={styles.totalPrice}>
           <Text style={styles.totalPriceText}>{totalPrice}</Text>
-          <Icon name="chevron-down" size={20} color="#000" />
         </View>
         <TouchableOpacity
           style={[
@@ -516,7 +507,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   carImage: {
-    width: 60,
+    width: 70,
     height: '100%',
     borderRadius: 4,
   },

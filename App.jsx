@@ -14,12 +14,12 @@ import SignIn from './src/screens/SignIn';
 import SignUp from './src/screens/SignUp';
 import Detail from './src/screens/Detail';
 import Payment1 from './src/screens/Payment/Payment1';
-import Payment3 from './src/screens/Payment/Payment3';
 import Payment4 from './src/screens/Payment/Payment4';
 import Payment5 from './src/screens/Payment/Payment5';
 import ListOrder from './src/screens/order/ListOrder';
 import EditProfile from './src/screens/EditProfile';
 import TicketScreen from './src/screens/Payment/Payment6';
+import OlehOlehScreen from './src/screens/olehOleh/olehOleh';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -95,9 +95,6 @@ function App() {
             }} name="Payment1" component={Payment1} />
             <Stack.Screen options={{
               headerShown: false
-            }} name="Payment3" component={Payment3} />
-            <Stack.Screen options={{
-              headerShown: false
             }} name="Payment4" component={Payment4} />
             <Stack.Screen options={{
               headerShown: false
@@ -105,6 +102,9 @@ function App() {
             <Stack.Screen options={{
               headerShown: false
             }} name="TicketScreen" component={TicketScreen} />
+            <Stack.Screen options={{
+              headerShown: false
+            }} name="OlehOlehScreen" component={OlehOlehScreen} />
           </Stack.Navigator>
         </NavigationContainer>
       </PersistGate>

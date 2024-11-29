@@ -145,7 +145,7 @@ export default function Payment4() {
         <View>
           <Text
             style={styles.headerTitle}>{`Status : ${order.data?.status}`}</Text>
-          <Text style={styles.orderId}>{order.data?.order_no}x</Text>
+          <Text style={styles.orderId}>{order.data?.order_no}</Text>
         </View>
       </View>
 

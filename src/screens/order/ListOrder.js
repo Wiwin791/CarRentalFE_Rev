@@ -66,7 +66,7 @@ const ListOrder = () => {
   useFocusEffect(
     React.useCallback(() => {
       if (order.status === 'success') {
-        navigation.navigate('Payment3');
+        navigation.navigate('Payment4');
       }
     }, [order]),
   );

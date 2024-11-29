@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
+import Icon from 'react-native-vector-icons/Feather';
 import { selectOrder, payment } from '../../redux/reducers/order';
 import { selectUser } from '../../redux/reducers/user';
 import { useDispatch, useSelector } from 'react-redux';
 import { useFocusEffect , useNavigation} from '@react-navigation/native';
+import ModalPopup from '../../components/Modal';
 
 
 export default function PaymentConfirmation() {
@@ -14,6 +16,8 @@ export default function PaymentConfirmation() {
   const order = useSelector(selectOrder);
   const dispatch = useDispatch();
   const navigation = useNavigation();
+  const [modalVisibile, setModalVisible] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
 
   useEffect(() => {
     if (timeLeft > 0) {
@@ -65,7 +69,12 @@ export default function PaymentConfirmation() {
 useFocusEffect(
   useCallback(() => {
     if(order.status === 'success'){
-      navigation.navigate('TicketScreen');
+      setModalVisible(true);
+      setErrorMessage(null);
+      setTimeout(() => {
+        setModalVisible(false);
+        navigation.navigate('Payment6');
+      }, 1000);
     }
   }, [order.status])
 )
@@ -95,6 +104,7 @@ useFocusEffect(
                 // source={require('./assets/placeholder-icon.png')}
                 style={styles.placeholderIcon}
               />
+              <Icon name="image" size={32} color="#666" />
               <Text>Pick an image</Text>
             </View>
           )}
@@ -116,6 +126,28 @@ useFocusEffect(
       <TouchableOpacity style={styles.viewOrderButton} onPress={() => navigation.navigate('HomeTabs', {screen : 'ListOrder'})}>
         <Text style={styles.viewOrderText}>Lihat Daftar Pesanan</Text>
       </TouchableOpacity>
+
+      <ModalPopup visible={modalVisibile}>
+          <View style={styles.modalBackground}>
+            {errorMessage !== null ? (
+              <>
+                <Icon size={13} name={'x-circle'} />
+                {Array.isArray(errorMessage) ? (
+                  errorMessage.map(e => {
+                    return <Text>{e.message}</Text>;
+                  })
+                ) : (
+                  <Text> {errorMessage} </Text>
+                )}
+              </>
+            ) : (
+              <>
+                <Icon size={32} name={'check-circle'} />
+                <Text>Upload Image Succesfully</Text>
+              </>
+            )}
+          </View>
+        </ModalPopup>
     </View>
   );
 }
