@@ -465,4 +465,23 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  modalBackground: {
+    width: '90%',
+    backgroundColor: '#fff',
+    elevation: 20,
+    borderRadius: 10,
+    padding: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+},
+  iconError: {
+    marginBottom: 15,
+  },
+  iconSuccess: {
+    marginBottom: 15,
+  },
 });

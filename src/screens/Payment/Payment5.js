@@ -66,18 +66,35 @@ export default function PaymentConfirmation() {
 
     
   }
-useFocusEffect(
-  useCallback(() => {
-    if(order.status === 'success'){
-      setModalVisible(true);
-      setErrorMessage(null);
-      setTimeout(() => {
-        setModalVisible(false);
-        navigation.navigate('Payment6');
-      }, 1000);
-    }
-  }, [order.status])
-)
+
+  useFocusEffect(
+    useCallback(() => {
+      if (order.status === 'success') {
+        setModalVisible(true);
+        setErrorMessage(null);
+        setTimeout(() => {
+          setModalVisible(false);
+          navigation.navigate('TicketScreen');
+        }, 1000);
+      } else if (order.status === 'failed') {
+        setErrorMessage(order.message);
+        setModalVisible(true);
+        setTimeout(() => {
+          setModalVisible(false);
+        }, 1000);
+      } else if (order.status === 'pending') {
+        // Do nothing or handle the case where status is pending
+        setErrorMessage('Your payment is still being processed.');
+        setModalVisible(true);
+        setTimeout(() => {
+          setModalVisible(false);
+        }, 1000);
+      }
+      // If order.status is not 'success', 'failed', or 'pending', no action happens here
+    }, [order.status])
+  );
+  
+  
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Konfirmasi Pembayaran</Text>
@@ -119,7 +136,7 @@ useFocusEffect(
         ]}
         disabled={!image} 
       >
-        <Text style={styles.uploadButtonText} onPress={() => navigation.navigate('TicketScreen')}>Upload</Text>
+        <Text style={styles.uploadButtonText}>Upload</Text>
       </TouchableOpacity>
 
 
@@ -131,7 +148,7 @@ useFocusEffect(
           <View style={styles.modalBackground}>
             {errorMessage !== null ? (
               <>
-                <Icon size={13} name={'x-circle'} />
+                <Icon size={13} name={'x-circle'} color="#D9534F" />
                 {Array.isArray(errorMessage) ? (
                   errorMessage.map(e => {
                     return <Text>{e.message}</Text>;
@@ -142,7 +159,7 @@ useFocusEffect(
               </>
             ) : (
               <>
-                <Icon size={32} name={'check-circle'} />
+                <Icon size={32} name={'check-circle'} color="#5CB85F" />
                 <Text>Upload Image Succesfully</Text>
               </>
             )}
@@ -245,5 +262,24 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 16,
     fontWeight: '600',
+  },
+  modalBackground: {
+    width: '90%',
+    backgroundColor: '#fff',
+    elevation: 20,
+    borderRadius: 10,
+    padding: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+},
+  iconError: {
+    marginBottom: 15,
+  },
+  iconSuccess: {
+    marginBottom: 15,
   },
 });

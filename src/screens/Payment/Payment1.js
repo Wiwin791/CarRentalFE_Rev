@@ -347,7 +347,7 @@ const Payment1 = ({route}) => {
           <View style={styles.modalBackground}>
             {errorMessage !== null ? (
               <>
-                <Icon size={13} name={'x-circle'} />
+                <Icon size={13} name={'x-circle'} color="#D9534F"/>
                 {Array.isArray(errorMessage) ? (
                   errorMessage.map(e => {
                     return <Text>{e.message}</Text>;
@@ -358,12 +358,12 @@ const Payment1 = ({route}) => {
               </>
             ) : updated ? (
               <>
-                <Icon size={32} name={'check-circle'} />
+                <Icon size={32} name={'check-circle'} color="#5CB85F" />
                 <Text>Order Updated</Text>
               </>
             ) : (
               <>
-                <Icon size={32} name={'check-circle'} />
+                <Icon size={32} name={'check-circle'} color="#5CB85F" />
                 <Text>Order Created</Text>
               </>
             )}
@@ -642,6 +642,25 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  modalBackground: {
+    width: '90%',
+    backgroundColor: '#fff',
+    elevation: 20,
+    borderRadius: 10,
+    padding: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  iconError: {
+    marginBottom: 15,
+  },
+  iconSuccess: {
+    marginBottom: 15,
   },
 });
 export default Payment1;
